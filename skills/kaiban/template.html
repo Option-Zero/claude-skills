@@ -1,0 +1,672 @@
+<title>KAIBAN_TITLE</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,600&display=swap">
+<style>
+/* Layout: one column. Needs you, then sessions, then the work list, then the system map, then the log.
+   Everything shown comes from the page's db; this file holds no project content. */
+:root{
+  --bg:#f6f7f4; --surface:#fff; --fg:#1d2420; --muted:#5d6862; --line:#d5dbd6; --col:#eaede8;
+  --accent:#2f6b4f; --accent-soft:#e3efe8; --new:#9a5b12; --new-soft:#fbf0de; --block:#a23a2c; --block-soft:#f8e4e0; --ok:#2f6b4f;
+  --display:"Fraunces",Georgia,serif; --body:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141917; --surface:#1c2320; --fg:#e4ebe6; --muted:#9aa8a0; --line:#2e3833; --col:#181e1b;
+  --accent:#7cc4a0; --accent-soft:#1f3329; --new:#e3a95c; --new-soft:#33281a; --block:#ec8a7c; --block-soft:#3a221e; --ok:#7cc4a0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141917; --surface:#1c2320; --fg:#e4ebe6; --muted:#9aa8a0; --line:#2e3833; --col:#181e1b;
+  --accent:#7cc4a0; --accent-soft:#1f3329; --new:#e3a95c; --new-soft:#33281a; --block:#ec8a7c; --block-soft:#3a221e; --ok:#7cc4a0; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.55}
+.wrap{max-width:1280px;margin:0 auto;padding-block:32px 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:48px}
+h1{font-family:var(--display);font-size:2rem;line-height:1.15;margin:0;text-wrap:balance}
+h2{font-family:var(--display);font-size:1.35rem;margin:0;text-wrap:balance}
+h3{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:0}
+p{margin:0;max-width:68ch}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+code{font-family:var(--mono);font-size:12.5px}
+section{display:grid;gap:14px;min-width:0}
+.wrap > header,.wrap > section{width:100%;max-width:820px;justify-self:center}
+.wrap > #work{max-width:none}
+.head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 12px}
+.lede{color:var(--muted);margin-top:8px}
+.stamp{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:8px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.notice{font-size:13.5px;color:var(--muted);border:1px dashed var(--line);border-radius:8px;padding:10px 12px}
+.chip{display:inline-block;font-family:var(--mono);font-size:11px;line-height:1.6;padding:0 7px;border-radius:99px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.chip.who{border-color:transparent;background:var(--accent-soft);color:var(--accent)}
+.chip.you{border-color:transparent;background:var(--new-soft);color:var(--new)}
+.pill{display:inline-block;font-family:var(--mono);font-size:11px;padding:0 7px;border-radius:99px;border:1px solid currentColor;white-space:nowrap}
+.pill.ok{color:var(--ok)} .pill.new{color:var(--new)} .pill.block{color:var(--block)} .pill.mut{color:var(--muted)}
+button{font:inherit;font-size:14px;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface);font-weight:600}
+button.link{border:0;background:none;padding:0;color:var(--accent);text-decoration:underline;font-size:13px}
+button:disabled{opacity:.5;cursor:default}
+select,input,textarea{font:inherit;font-size:14px;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 8px;max-width:100%}
+textarea{width:100%;min-height:56px;resize:vertical}
+.links{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13.5px}
+
+/* Needs you */
+.needs{display:grid;gap:12px}
+.ask{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:10px;min-width:0}
+.ask.blocker{border-color:var(--block);background:var(--block-soft)}
+.ask .top{display:flex;gap:8px;align-items:baseline;justify-content:space-between;flex-wrap:wrap}
+.ask .title{font-weight:600;font-size:16px}
+.ask ol{margin:0;padding-left:20px;display:grid;gap:4px;font-size:14px}
+.opts{display:grid;gap:8px}
+.opt{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;align-items:start;text-align:left;padding:10px 12px;border-radius:8px;border:1px solid var(--line);cursor:pointer}
+.opt input{margin-top:4px;grid-row:span 2}
+.opt .d{color:var(--muted);font-size:13.5px}
+.opt.rec{border-color:var(--accent)}
+.opt.on{border-color:var(--accent);background:var(--accent-soft)}
+.opt .rec-tag{font-family:var(--mono);font-size:11px;color:var(--accent);margin-left:6px}
+.act{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.answered{display:grid;gap:6px}
+.answered .row{display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;font-size:14px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+
+/* Sessions */
+.sessions{display:grid;border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
+.srow{display:grid;grid-template-columns:minmax(150px,200px) 1fr auto;gap:4px 14px;padding:10px 14px;border-top:1px solid var(--line);align-items:baseline}
+.srow:first-child{border-top:0}
+.srow .name{font-family:var(--mono);font-size:13px;font-weight:500}
+.srow .role{font-size:12.5px;color:var(--muted)}
+.srow .now{min-width:0;font-size:14px}
+.srow .when{font-family:var(--mono);font-size:11.5px;color:var(--muted);white-space:nowrap}
+.srow .when.stale{color:var(--new)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:var(--muted);vertical-align:1px}
+.dot.working{background:var(--ok)} .dot.waiting{background:var(--new)}
+@media (max-width:600px){.srow{grid-template-columns:1fr auto}.srow .now{grid-column:1/-1}}
+
+/* Work: one column per stage; a stage with an owner is that session's queue */
+.filters{display:flex;flex-wrap:wrap;gap:6px}
+.filters button{font-size:12.5px;padding:3px 10px;border-radius:99px}
+.filters button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.n{font-family:var(--mono);font-weight:400}
+.alert{font-size:13.5px;color:var(--new);background:var(--new-soft);border-radius:8px;padding:8px 12px}
+.board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(210px,1fr);gap:10px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x proximity}
+.col{background:var(--col);border-radius:10px;padding:8px;display:grid;gap:6px;align-content:start;min-width:0;min-height:140px;scroll-snap-align:start}
+.col.over{outline:2px solid var(--accent);outline-offset:-2px}
+.col.drop-end::after{content:"";height:3px;background:var(--accent);border-radius:2px}
+.col-head{display:grid;gap:0;padding:2px 4px 4px}
+.col-head .l{display:flex;justify-content:space-between;align-items:baseline;gap:6px;font-size:13px}
+.col-head .who{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.col-head .warn{font-family:var(--mono);font-size:11px;color:var(--new)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;min-width:0}
+.card.handed{border-color:var(--new)}
+.card.blocked{border-color:var(--block)}
+.card .sum{cursor:pointer;padding:8px 10px;display:grid;gap:5px}
+.card[draggable="true"] .sum{cursor:grab}
+.card:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+/* The whole card opens in a dialog; the board shows only its summary */
+dialog.cardlg{width:min(600px,calc(100% - 32px));max-height:calc(100% - 48px);padding:0;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--fg)}
+dialog.cardlg::backdrop{background:rgb(0 0 0 / .45)}
+.cardlg .card{border:0}
+.cardlg .sum{cursor:default;padding:16px 18px 10px;grid-template-columns:1fr auto;align-items:start}
+.cardlg .sum > :not(.close){grid-column:1}
+.cardlg .close{grid-column:2;grid-row:1}
+.cardlg .ct{font-size:17px}
+.cardlg .body{padding:0 18px 18px;gap:12px;font-size:14px}
+.cardlg .body p{white-space:pre-line}
+.cardlg .notes{border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:13px}
+.cardlg .notes summary{cursor:pointer;color:var(--muted)}
+.cardlg .notes p{margin-top:8px;font-family:var(--mono);font-size:12px;overflow-wrap:anywhere}
+.cardlg .controls{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px 16px;font-size:13px;border-top:1px solid var(--line);padding-top:12px}
+.cardlg .controls select{max-width:160px}
+.cardlg .controls .act{grid-column:1/-1}
+.card .ref{font-family:var(--mono);font-size:11px;font-weight:400;color:var(--muted);margin-right:6px;user-select:all}
+.card .ct{font-size:14px;font-weight:500;line-height:1.35;overflow-wrap:anywhere}
+.card .cm{display:flex;flex-wrap:wrap;gap:4px}
+.card .waits{font-size:12px;color:var(--muted);line-height:1.35}
+.card .waits.hand{color:var(--new)}
+.card .body{padding:0 10px 10px;display:grid;gap:8px;font-size:13.5px}
+.card .body p{color:var(--muted)}
+.card .controls{display:grid;gap:6px;font-size:12.5px}
+.card .controls label{display:flex;justify-content:space-between;gap:6px;align-items:center}
+.card .controls select{font-size:12.5px;padding:3px 6px;max-width:130px}
+.card.dragging{opacity:.4}
+.card.drop-before{box-shadow:0 -3px 0 var(--accent)}
+.badge{font-family:var(--mono);font-size:10.5px;line-height:1.7;padding:0 6px;border-radius:99px;white-space:nowrap}
+.badge.handed{background:var(--new-soft);color:var(--new)}
+.badge.doing{background:var(--accent-soft);color:var(--accent)}
+.badge.blocked{background:var(--block-soft);color:var(--block)}
+.badge.wontdo{border:1px solid var(--line);color:var(--muted)}
+.badge.type{margin-right:6px;vertical-align:1px;border:1px solid currentColor;text-transform:uppercase;letter-spacing:.04em}
+.badge.type.spike{color:var(--accent)}
+.badge.type.bug{color:var(--block)}
+.card .ct.struck{text-decoration:line-through}
+button.link.danger{color:var(--block)}
+.empty{padding:8px 4px;font-size:12.5px;color:var(--muted)}
+.more{font-size:12px;color:var(--muted);padding:2px 4px;justify-self:start}
+#aside{display:flex;flex-wrap:wrap;gap:10px;align-items:start}
+#aside > .col{flex:1 1 300px}
+.col[data-stage="done"] .card .sum{padding:6px 10px}
+.col[data-stage="done"] .card .ct{font-size:13px;font-weight:400;color:var(--muted)}
+.col.aside{min-height:0;max-width:420px;max-height:340px;overflow-y:auto}
+.col.aside > .col-head{position:sticky;top:-8px;z-index:1;background:var(--col);margin:-8px -8px 0;padding:10px 12px 6px}
+@media (max-width:600px){.board{grid-auto-columns:82%}}
+.addtask{display:grid;gap:8px;grid-template-columns:1fr auto auto auto;align-items:center;max-width:820px}
+@media (max-width:600px){.addtask{grid-template-columns:1fr 1fr}.addtask input{grid-column:1/-1}}
+
+/* System map */
+.band{display:grid;gap:8px}
+.band + .band{position:relative;padding-top:22px}
+.band + .band::before{content:"↓";position:absolute;top:0;left:14px;color:var(--muted);font-size:14px}
+.boxes{display:flex;flex-wrap:wrap;gap:8px}
+.box{flex:1 1 220px;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:grid;gap:4px;align-content:start}
+.box.todo{background:transparent;border-style:dashed;border-color:var(--muted)}
+.box.blocked{border-color:var(--block)}
+.box .bt{display:flex;gap:6px;align-items:baseline;justify-content:space-between}
+.box p{font-size:13px;color:var(--muted)}
+.box .work{display:flex;gap:4px;flex-wrap:wrap}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted)}
+
+/* Log */
+.scrollbox{max-height:460px;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:0 10px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:500;position:sticky;top:0;background:var(--surface)}
+td:first-child{font-family:var(--mono);font-size:12.5px;white-space:nowrap;font-variant-numeric:tabular-nums}
+td:nth-child(2),td:last-child{white-space:nowrap;color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+@media (max-width:620px){td:nth-child(2),td:last-child{white-space:normal}}
+details.how{font-size:14px}
+details.how summary{cursor:pointer;color:var(--muted)}
+details.how ol{margin:10px 0 0;padding-left:20px;display:grid;gap:6px;max-width:72ch}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<div class="wrap">
+
+<header>
+  <h1 id="title">Loading…</h1>
+  <p class="lede" id="lede" hidden></p>
+  <div class="stamp" id="stamp">Loading the live state…</div>
+</header>
+
+<section id="needs-you">
+  <div class="head"><h2>Needs you</h2><span class="small muted" id="needs-count"></span></div>
+  <div class="needs" id="needs"><p class="notice">Loading what's waiting on you…</p></div>
+  <div class="answered" id="answered"></div>
+</section>
+
+<section id="sessions">
+  <div class="head"><h2>Sessions</h2><span class="small muted">What each Claude Code session says it's doing</span></div>
+  <div class="sessions" id="session-list"><div class="srow"><span class="muted">Loading sessions…</span></div></div>
+</section>
+
+<section id="work">
+  <div class="head"><h2>Work</h2><span class="small muted" id="work-count"></span></div>
+  <div class="filters" id="filters" role="group" aria-label="Show work for"></div>
+  <p class="alert" id="handoff-alert" hidden></p>
+  <div class="board" id="board"><p class="notice">Loading the board…</p></div>
+  <div id="aside"></div>
+  <dialog class="cardlg" id="card-dialog" aria-label="Card"></dialog>
+  <form class="addtask" id="addtask" hidden>
+    <input id="add-title" placeholder="Add a to-do to Up next…" aria-label="New to-do" required>
+    <select id="add-type" aria-label="Type"><option value="">story</option><option value="spike">spike</option><option value="bug">bug</option></select>
+    <select id="add-owner" aria-label="Owner"></select>
+    <select id="add-area" aria-label="Part of the system"></select>
+    <button type="submit">Add</button>
+  </form>
+</section>
+
+<section id="system" hidden>
+  <div class="head"><h2>System</h2><span class="small muted">What it's made of, top to bottom. History lives in the log.</span></div>
+  <div class="legend"><span><span class="pill ok">live</span></span><span><span class="pill new">being changed</span></span><span><span class="pill block">blocked</span></span><span><span class="pill mut">not built</span></span></div>
+  <div id="map"></div>
+</section>
+
+<section id="log">
+  <div class="head"><h2>Log</h2><span class="small muted">Newest first · D decisions · A things that shipped</span></div>
+  <div class="scrollbox"><table>
+    <thead><tr><th>#</th><th>Date</th><th>Decision or action</th><th>By</th></tr></thead>
+    <tbody id="log-live"></tbody>
+  </table></div>
+  <p class="small" id="archive" hidden></p>
+  <details class="how">
+    <summary>How sessions keep this page current</summary>
+    <ol>
+      <li>The state lives in this page's database, not its HTML. Sessions read and write it with the ArtifactData tool on this page's URL; nobody republishes the page to update it.</li>
+      <li>A session keeps its row in <code>sessions</code> current: what it's doing now, its state, when it last checked in.</li>
+      <li><b>Handing off</b> is moving a card to the next stage: its <code>stage</code>, the stage's session as <code>owner</code>, <code>state: "handed"</code>, <code>from</code> and <code>handedAt</code>. Dragging a card into a session's column does exactly that. A message to the other session is a nudge; the card is the record.</li>
+      <li><b>Picking up</b> sets <code>state: "doing"</code> and <code>pickedUpAt</code>. Until then the card says "not picked up".</li>
+      <li><b>Asking you</b> adds a <code>needs</code> doc with options and <code>actFor</code>, the session that acts on the answer. It closes the ask and logs it once it has acted.</li>
+      <li><b>Done</b> moves the card to <code>stage: "done"</code> and adds a <code>log</code> row with links.</li>
+    </ol>
+  </details>
+</section>
+
+</div>
+
+<script>
+const DEFAULT_STAGES = [{key: "later", label: "Later and ideas", aside: true}, {key: "next", label: "Up next"}, {key: "doing", label: "Doing"}, {key: "done", label: "Done", aside: true}];
+// A card's type changes how a session handles it: a spike follows the design-spike skill and ends in new cards; a bug carries steps to reproduce and may skip Design. Story is the default and shows no tag.
+const TYPES = {"": "story", spike: "spike", bug: "bug"};
+const STATES = {"": "—", handed: "not picked up", doing: "in progress", blocked: "blocked", wontdo: "won't do"};
+const PILLS = {live: ["ok", "live"], changing: ["new", "being changed"], blocked: ["block", "blocked"], todo: ["mut", "not built"]};
+
+const state = {config: {}, needs: [], tasks: [], sessions: [], log: [], filter: "all", picks: {}, notes: {}, open: new Set()};
+let db = null;
+let comments = null;
+
+/* The board can't wake a session, but a comment sent to Claude wakes the relay session
+   watching this page, which passes it on. Falls back to the sessions' own checks. */
+async function notifySession(el, text) {
+  if (!comments) return false;
+  try {
+    if (await comments.canSendToClaude() !== "available") return false;
+    await comments.sendToClaude({anchor: await comments.anchorFor(el), text: text.slice(0, 3800)});
+    return true;
+  } catch { return false; }
+}
+function tellSession(el, who, text) {
+  if (!who || who === me()) return;
+  notifySession(el, "Kaiban relay to " + who + " (relay only: pass this to " + who + " with SendMessage, reply \"Passed to " + who + "\", and don't act on it yourself): " + text).then(sent =>
+    flash(sent ? "Sent to " + who + "." : "Saved. " + who + " sees it at its next board check."));
+}
+let dragId = null;
+
+const me = () => state.config.me || "You";
+const areaLabel = key => state.config.areas?.[key] || key;
+const ref = t => t.num ? (state.config.prefix || "K") + "-" + t.num : "";
+const named = t => (ref(t) ? ref(t) + " " : "") + "\"" + t.title + "\"";
+const stages = () => state.config.stages?.length ? state.config.stages : DEFAULT_STAGES;
+const stageByKey = key => stages().find(s => s.key === key);
+const active = t => t.stage !== "done" && !stageByKey(t.stage)?.aside;
+const firstBoardStage = () => stages().find(s => !s.aside) || stages()[0];
+/* Cards written before stages existed carry only a status; read them as a stage and state. */
+function normalize(t) {
+  if (t.stage) return t;
+  const st = t.status;
+  const byOwner = stages().find(s => s.owner && s.owner === t.owner);
+  if (st === "handed" || st === "doing" || st === "blocked") return {...t, stage: (byOwner || firstBoardStage()).key, state: st};
+  return {...t, stage: stageByKey(st) ? st : firstBoardStage().key, state: t.state || ""};
+}
+
+function h(tag, attrs, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else if (k === "class") el.className = v;
+    else el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const kid of kids.flat()) if (kid != null && kid !== false) el.append(kid.nodeType ? kid : String(kid));
+  return el;
+}
+function safeHref(href) { return /^https:\/\//.test(href || "") || /^[\w-]+\.html$/.test(href || "") ? href : null; }
+function anchor(l) { return safeHref(l.href) ? h("a", {href: l.href, target: "_blank", rel: "noopener"}, l.label || l.href) : null; }
+function linkList(links) { return links?.length ? h("div", {class: "links"}, links.map(anchor)) : null; }
+function ago(iso) {
+  if (!iso) return "";
+  const mins = Math.round((Date.now() - new Date(iso)) / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return mins + " min ago";
+  const hrs = Math.round(mins / 60);
+  if (hrs < 36) return hrs + " h ago";
+  return Math.round(hrs / 24) + " days ago";
+}
+function hoursSince(iso) { return iso ? (Date.now() - new Date(iso)) / 3600000 : Infinity; }
+function mmdd(iso) { const d = new Date(iso); return String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+function ownerChip(owner) { return h("span", {class: owner === me() ? "chip you" : "chip who"}, owner === me() ? "you" : owner); }
+function people() { return [me(), ...state.sessions.map(s => s.name).sort()]; }
+function taskById(id) { return state.tasks.find(t => t.id === id); }
+
+async function save(path, data) {
+  if (!db) return;
+  try { await db.doc(path).update({...data, updated: new Date().toISOString()}); }
+  catch (e) { flash("Couldn't save: " + (e.message || e.code)); }
+}
+function flash(msg) { document.getElementById("stamp").textContent = msg; }
+
+/* Header */
+function renderHeader() {
+  const c = state.config;
+  document.getElementById("title").textContent = c.title || "Set up this board";
+  const lede = document.getElementById("lede");
+  lede.textContent = c.title ? (c.lede || "") : "Write a config/main document with a title, the person's name (me), areas and a map. The kaiban skill says how.";
+  lede.hidden = !lede.textContent;
+}
+
+/* Needs you */
+function renderNeeds() {
+  const box = document.getElementById("needs");
+  const open = state.needs.filter(n => n.status === "open").sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
+  const answered = state.needs.filter(n => n.status === "answered");
+  document.getElementById("needs-count").textContent = open.length ? open.length + " waiting" : "";
+  box.replaceChildren();
+  if (!open.length) box.append(h("p", {class: "notice"}, "Nothing is waiting on you."));
+  for (const n of open) box.append(askCard(n));
+
+  const ans = document.getElementById("answered");
+  ans.replaceChildren();
+  if (!answered.length) return;
+  ans.append(h("h3", {}, "Answered, waiting for a session to act"));
+  for (const n of answered) {
+    ans.append(h("div", {class: "row"},
+      h("span", {}, "✓ ", h("b", {}, n.title), " — ", n.answer?.label || "Done", n.answer?.note ? ": “" + n.answer.note + "”" : ""),
+      n.actFor ? h("span", {class: "small muted"}, "→ ", ownerChip(n.actFor), " " + ago(n.answer?.at)) : null,
+      db ? h("button", {class: "link", onclick: () => save("needs/" + n.id, {status: "open", answer: null})}, "Undo") : null));
+  }
+}
+function askCard(n) {
+  const opts = n.options || [];
+  const pick = state.picks[n.id] ?? (opts.find(o => o.rec)?.key);
+  const card = h("div", {class: "ask" + (n.kind === "blocker" ? " blocker" : "")});
+  card.append(h("div", {class: "top"},
+    h("span", {class: "title"}, n.title),
+    h("span", {class: "small muted"}, [n.kind === "blocker" ? "blocking " : "", n.blocks || "", n.created ? " · since " + mmdd(n.created) : ""].join(""))));
+  if (n.body) card.append(h("p", {}, n.body));
+  if (n.steps?.length) card.append(h("ol", {}, n.steps.map(s => h("li", {}, s))));
+  const askLinks = linkList(n.links);
+  if (askLinks) card.append(askLinks);
+  if (opts.length) {
+    card.append(h("div", {class: "opts", role: "radiogroup", "aria-label": n.title}, opts.map(o =>
+      h("label", {class: "opt" + (o.rec ? " rec" : "") + (pick === o.key ? " on" : "")},
+        h("input", {type: "radio", name: "pick-" + n.id, value: o.key, checked: pick === o.key, disabled: !db,
+          onchange: () => { state.picks[n.id] = o.key; renderNeeds(); }}),
+        h("span", {}, h("b", {}, o.label), o.rec ? h("span", {class: "rec-tag"}, "recommended") : null),
+        o.detail ? h("span", {class: "d"}, o.detail) : h("span", {})))));
+  }
+  if (db) {
+    const ta = h("textarea", {id: "note-" + n.id, placeholder: opts.length ? "Anything to add? (optional)" : "Note for the session (optional)", "aria-label": "Note"});
+    ta.value = state.notes[n.id] || "";
+    ta.addEventListener("input", () => { state.notes[n.id] = ta.value; });
+    const chosen = opts.find(o => o.key === pick);
+    card.append(ta, h("div", {class: "act"},
+      h("button", {class: "primary", disabled: opts.length > 0 && !chosen, onclick: async () => {
+        const label = chosen?.label || n.doneLabel || "Done";
+        const note = ta.value.trim();
+        tellSession(card, n.actFor, me() + " answered \"" + n.title + "\": " + label + (note ? ". Note: " + note : "") + " (needs/" + n.id + ")");
+        await save("needs/" + n.id, {status: "answered", answer: {choice: chosen?.key || "done", label, note, at: new Date().toISOString()}});
+        delete state.notes[n.id]; delete state.picks[n.id];
+      }}, opts.length ? "Send answer" : (n.doneLabel || "Mark done")),
+      n.actFor ? h("span", {class: "small muted"}, "Goes to ", ownerChip(n.actFor)) : null));
+  }
+  return card;
+}
+
+/* Sessions */
+function renderSessions() {
+  const list = document.getElementById("session-list");
+  list.replaceChildren();
+  const rows = [...state.sessions].sort((a, b) => a.name.localeCompare(b.name));
+  if (!rows.length) list.append(h("div", {class: "srow"}, h("span", {class: "muted"}, "No session has checked in yet.")));
+  for (const s of rows) {
+    const mine = state.tasks.filter(t => t.owner === s.name && active(t));
+    const stale = hoursSince(s.updated) > 12;
+    list.append(h("div", {class: "srow"},
+      h("div", {}, h("div", {class: "name"}, h("span", {class: "dot " + (s.state || "")}), s.name), h("div", {class: "role"}, [s.role, s.model].filter(Boolean).join(" · "))),
+      h("div", {class: "now"}, s.now || h("span", {class: "muted"}, "Hasn't said"), mine.length ? h("div", {class: "small muted"}, mine.length + " open: " + mine.map(t => t.title).join("; ")) : null),
+      h("div", {class: "when" + (stale ? " stale" : "")}, s.updated ? (stale ? "quiet " : "") + ago(s.updated) : "never")));
+  }
+}
+
+/* Work */
+function renderFilters() {
+  const f = document.getElementById("filters");
+  f.replaceChildren();
+  const opts = [["all", "Everyone"], ...people().map(p => [p, p === me() ? "You" : p])];
+  for (const [key, label] of opts) {
+    const n = state.tasks.filter(t => (key === "all" || t.owner === key) && active(t)).length;
+    f.append(h("button", {"aria-pressed": state.filter === key ? "true" : "false", onclick: () => { state.filter = key; renderWork(); }}, label + (n ? " · " + n : "")));
+  }
+}
+const nowIso = () => new Date().toISOString();
+function handoffPatch(t, owner) {
+  if (!owner || owner === t.owner) return {};
+  if (owner === me()) return {owner, state: t.state === "handed" ? "" : (t.state || "")};
+  return {owner, state: "handed", from: t.owner || me(), handedAt: nowIso(), pickedUpAt: null};
+}
+/* Moving into a stage that belongs to a session hands the card to it; moving into an unowned stage keeps the owner. */
+function movePatch(t, stageKey) {
+  if (stageKey === t.stage) return {};
+  const st = stageByKey(stageKey);
+  if (stageKey === "done") return {stage: stageKey, state: ""};
+  if (st?.owner) return {stage: stageKey, owner: st.owner, state: "handed", from: t.owner && t.owner !== st.owner ? t.owner : me(), handedAt: nowIso(), pickedUpAt: null};
+  return {stage: stageKey, state: t.state === "blocked" ? "blocked" : ""};
+}
+
+/* Drag and drop: onto a column to move the card there, at the spot it's dropped */
+function clearMarkers() {
+  document.querySelectorAll(".drop-before,.drop-end,.col.over").forEach(el => el.classList.remove("drop-before", "drop-end", "over"));
+}
+function dropSpot(col, y) {
+  const rows = [...col.querySelectorAll(".card")].filter(r => r.dataset.id !== dragId);
+  const after = rows.find(r => { const b = r.getBoundingClientRect(); return y < b.top + b.height / 2; });
+  return {rows, after};
+}
+function dropZone(col, stageKey) {
+  col.addEventListener("dragover", e => {
+    if (!dragId) return;
+    e.preventDefault();
+    clearMarkers();
+    col.classList.add("over");
+    const {after} = dropSpot(col, e.clientY);
+    if (after) after.classList.add("drop-before");
+    else col.classList.add("drop-end");
+  });
+  col.addEventListener("dragleave", e => { if (!col.contains(e.relatedTarget)) clearMarkers(); });
+  col.addEventListener("drop", e => {
+    e.preventDefault();
+    clearMarkers();
+    const t = taskById(dragId);
+    if (!t) return;
+    const {rows, after} = dropSpot(col, e.clientY);
+    const order = id => taskById(id)?.order ?? 50;
+    const i = after ? rows.indexOf(after) : rows.length;
+    const prev = i > 0 ? order(rows[i - 1].dataset.id) : (after ? order(after.dataset.id) - 2 : 0);
+    const next = after ? order(after.dataset.id) : prev + 2;
+    const patch = movePatch(t, stageKey);
+    if (patch.state === "handed") tellSession(col, patch.owner, me() + " moved " + named(t) + " to " + (stageByKey(stageKey)?.label || stageKey) + " for you (tasks/" + t.id + ")");
+    save("tasks/" + t.id, {...patch, order: (prev + next) / 2});
+  });
+}
+
+/* The board shows each card's summary; clicking one opens the whole card in a dialog. */
+function cardSummary(t, ...extra) {
+  const st = stageByKey(t.stage);
+  let waits = null;
+  if (t.state === "handed" && t.stage !== "done") waits = h("span", {class: "waits hand"}, "from " + (t.from || "?") + ", " + ago(t.handedAt));
+  else if (t.waitsOn && t.stage !== "done") waits = h("span", {class: "waits"}, "waits on " + t.waitsOn);
+  // The column says whose queue a card is in; the owner's tag marks only what they're actively on.
+  const showOwner = t.owner && t.state === "doing" && t.stage !== "done" && !st?.aside;
+  return h("div", {class: "sum"},
+    h("span", {class: "ct" + (t.state === "wontdo" ? " struck" : "")}, ref(t) ? h("span", {class: "ref"}, ref(t)) : null, TYPES[t.type] && t.type ? h("span", {class: "badge type " + t.type}, t.type) : null, t.title),
+    t.stage === "done" ? (t.state === "wontdo" ? h("span", {class: "cm"}, h("span", {class: "badge wontdo"}, STATES.wontdo)) : null) : h("span", {class: "cm"},
+      t.state && t.state !== "doing" && t.stage !== "done" ? h("span", {class: "badge " + t.state}, STATES[t.state] || t.state) : null,
+      t.area ? h("span", {class: "chip"}, areaLabel(t.area)) : null,
+      showOwner ? ownerChip(t.owner) : null),
+    waits, ...extra);
+}
+function card(t) {
+  const el = h("div", {class: "card" + (t.state && t.stage !== "done" ? " " + t.state : ""), "data-id": t.id, tabindex: 0, role: "button", "aria-haspopup": "dialog"}, cardSummary(t));
+  el.addEventListener("click", () => openCard(t.id));
+  el.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openCard(t.id); } });
+  if (db) {
+    el.draggable = true;
+    el.addEventListener("dragstart", e => { dragId = t.id; e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", t.title); el.classList.add("dragging"); });
+    el.addEventListener("dragend", () => { dragId = null; el.classList.remove("dragging"); clearMarkers(); });
+  }
+  return el;
+}
+function openCard(id) {
+  const dlg = document.getElementById("card-dialog");
+  state.dialog = id;
+  renderCardDialog(true);
+  if (!dlg.open) dlg.showModal();
+}
+/* Redraws the open card when someone else changes it; otherwise leaves unsaved picks alone. */
+function renderCardDialog(force) {
+  const dlg = document.getElementById("card-dialog");
+  const t = state.dialog && taskById(state.dialog);
+  if (!t) { if (dlg.open) dlg.close(); return; }
+  if (!force && dlg.dataset.updated === (t.updated || "")) return;
+  dlg.dataset.updated = t.updated || "";
+  const showOwner = t.owner && t.state === "doing" && t.stage !== "done" && !stageByKey(t.stage)?.aside;
+  const body = h("div", {class: "body"});
+  if (t.detail) body.append(h("p", {}, t.detail));
+  const cardLinks = linkList(t.links);
+  if (cardLinks) body.append(cardLinks);
+  // detail is the overview for the person; notes hold what only another session needs (files, PRs, decisions, edge cases).
+  if (t.notes) body.append(h("details", {class: "notes"}, h("summary", {}, "For sessions"), h("p", {}, t.notes)));
+  const trail = [t.owner && !showOwner && "owner " + t.owner, t.from && "from " + t.from, t.handedAt && "handed " + mmdd(t.handedAt), t.pickedUpAt && "picked up " + mmdd(t.pickedUpAt), t.updated && "updated " + ago(t.updated)].filter(Boolean).join(" · ");
+  if (trail) body.append(h("span", {class: "small muted"}, trail));
+  // A relay comment anchors to the card on the board, so the thread points at it.
+  const anchorEl = () => document.querySelector('#work .card[data-id="' + t.id + '"]') || dlg;
+  if (db) {
+    const stageSel = h("select", {"aria-label": "Stage"}, stages().map(s => h("option", {value: s.key, selected: s.key === t.stage}, s.label)));
+    const ownerSel = h("select", {"aria-label": "Owner"}, people().map(p => h("option", {value: p, selected: p === t.owner}, p)));
+    const stateSel = h("select", {"aria-label": "State"}, Object.entries(STATES).map(([k, v]) => h("option", {value: k, selected: k === (t.state || "")}, v)));
+    const typeSel = h("select", {"aria-label": "Type"}, Object.entries(TYPES).map(([k, v]) => h("option", {value: k, selected: k === (t.type || "")}, v)));
+    body.append(h("div", {class: "controls"},
+      h("label", {}, "Type", typeSel), h("label", {}, "Stage", stageSel), h("label", {}, "Owner", ownerSel), h("label", {}, "State", stateSel),
+      h("span", {class: "act"},
+        h("button", {class: "primary", onclick: () => {
+          const patch = {...movePatch(t, stageSel.value), ...handoffPatch(t, ownerSel.value)};
+          if (stateSel.value !== (t.state || "")) patch.state = stateSel.value;
+          if (typeSel.value !== (t.type || "")) patch.type = typeSel.value;
+          if (patch.state === "doing" && !t.pickedUpAt) patch.pickedUpAt = nowIso();
+          if (patch.state === "handed") tellSession(anchorEl(), patch.owner, me() + " handed " + named(t) + " to you in " + (stageByKey(patch.stage || t.stage)?.label || "the board") + " (tasks/" + t.id + ")");
+          save("tasks/" + t.id, patch);
+        }}, "Save"),
+        t.state === "wontdo" ? null : h("button", {class: "link", onclick: () => save("tasks/" + t.id, {stage: "done", state: "wontdo"})}, "Won't do"),
+        h("button", {class: "link danger", onclick: e => {
+          e.target.parentNode.replaceChildren("Delete for good? ",
+            h("button", {class: "link danger", onclick: () => db.doc("tasks/" + t.id).delete().then(() => dlg.close(), err => flash("Couldn't delete: " + (err.message || err.code)))}, "Delete"),
+            h("button", {class: "link", onclick: () => renderCardDialog(true)}, "Cancel"));
+        }}, "Delete…"))));
+  }
+  dlg.replaceChildren(h("div", {class: "card" + (t.state && t.stage !== "done" ? " " + t.state : "")},
+    cardSummary(t, h("button", {class: "link close", onclick: () => dlg.close()}, "Close")), body));
+}
+function renderWork() {
+  renderFilters();
+  const shown = state.tasks.filter(t => state.filter === "all" || t.owner === state.filter);
+  const byOrder = (a, b) => (a.order ?? 99) - (b.order ?? 99) || (a.title || "").localeCompare(b.title || "");
+  document.getElementById("work-count").textContent = state.tasks.filter(active).length + " open";
+
+  const handed = state.tasks.filter(t => t.state === "handed" && t.stage !== "done").sort((a, b) => (a.handedAt || "").localeCompare(b.handedAt || ""));
+  const alert = document.getElementById("handoff-alert");
+  alert.hidden = !handed.length;
+  alert.replaceChildren(h("b", {}, handed.length + " handed off, not picked up: "), handed.map((t, i) => [i ? "; " : "", (ref(t) ? ref(t) + " " : "") + t.title + " → " + t.owner + " (" + ago(t.handedAt) + ")"]));
+
+  const board = document.getElementById("board");
+  const aside = document.getElementById("aside");
+  board.replaceChildren();
+  aside.replaceChildren();
+  const known = new Set(stages().map(s => s.key));
+  for (const st of stages()) {
+    let items = shown.filter(t => t.stage === st.key || (!known.has(t.stage) && st === firstBoardStage())).sort(byOrder);
+    let hiddenCount = 0;
+    if (st.key === "done") {
+      items = items.sort((a, b) => (b.updated || "").localeCompare(a.updated || ""));
+      const keep = state.open.has("done-all") ? 50 : 5;
+      hiddenCount = Math.max(0, items.length - keep);
+      items = items.slice(0, keep);
+    }
+    const waiting = items.filter(t => t.state === "handed").length;
+    const col = h("div", {class: "col" + (st.aside ? " aside" : ""), "data-stage": st.key},
+      h("div", {class: "col-head"},
+        h("div", {class: "l"}, h("b", {}, st.label), h("span", {class: "n"}, items.length + hiddenCount)),
+        st.owner ? h("span", {class: "who"}, st.owner === me() ? "you" : st.owner) : null,
+        waiting ? h("span", {class: "warn"}, waiting + " not picked up") : null),
+      items.length ? items.map(card) : h("div", {class: "empty"}, db ? "Drag a card here." : "Nothing here."),
+      st.key === "done" && (hiddenCount || state.open.has("done-all"))
+        ? h("button", {class: "link more", onclick: () => { state.open.has("done-all") ? state.open.delete("done-all") : state.open.add("done-all"); renderWork(); }},
+            state.open.has("done-all") ? "Show fewer" : "Show " + hiddenCount + " more")
+        : null);
+    if (db) dropZone(col, st.key);
+    (st.aside ? aside : board).append(col);
+  }
+  document.getElementById("addtask").hidden = !db;
+  const ownerSel = document.getElementById("add-owner");
+  const keep = ownerSel.value;
+  ownerSel.replaceChildren(...people().map(p => h("option", {value: p}, p)));
+  if (keep) ownerSel.value = keep;
+  const areaSel = document.getElementById("add-area");
+  const areaKeep = areaSel.value;
+  areaSel.replaceChildren(h("option", {value: ""}, "Area"), ...Object.entries(state.config.areas || {}).map(([k, v]) => h("option", {value: k}, v)));
+  areaSel.value = areaKeep;
+  renderCardDialog();
+}
+
+/* System map, from config.map, with open work and session tags on each box */
+function renderMap() {
+  const bands = state.config.map || [];
+  document.getElementById("system").hidden = !bands.length;
+  document.getElementById("map").replaceChildren(...bands.map(band => h("div", {class: "band"},
+    h("h3", {}, band.heading || ""),
+    h("div", {class: "boxes"}, (band.boxes || []).map(box => {
+      const open = state.tasks.filter(t => t.area === box.area && active(t));
+      const owners = [...new Set(open.filter(t => t.state === "doing").map(t => t.owner))];
+      const blocked = box.state === "blocked" || open.some(t => t.state === "blocked");
+      const [pillClass, pillText] = PILLS[box.state] || ["mut", box.state || ""];
+      return h("div", {class: "box" + (box.state === "todo" ? " todo" : "") + (blocked ? " blocked" : "")},
+        h("div", {class: "bt"}, h("b", {}, box.name || areaLabel(box.area)), pillText || box.pill ? h("span", {class: "pill " + pillClass}, box.pill || pillText) : null),
+        box.text ? h("p", {}, box.text) : null,
+        linkList(box.links),
+        h("div", {class: "work"},
+          open.length ? h("a", {href: "#work", class: "chip", onclick: () => { state.filter = "all"; renderWork(); }}, open.length + " open") : null,
+          owners.map(ownerChip)));
+    })))));
+}
+
+/* Log */
+function renderLog() {
+  document.getElementById("log-live").replaceChildren(...[...state.log].sort((a, b) => (b.at || "").localeCompare(a.at || "")).map(r =>
+    h("tr", {}, h("td", {}, r.num || ""), h("td", {}, r.at ? mmdd(r.at) : ""),
+      h("td", {}, h("b", {}, r.headline || ""), r.text ? " " + r.text : "", ...(r.links || []).filter(l => safeHref(l.href)).flatMap((l, i) => [i ? ", " : " ", anchor(l)])),
+      h("td", {}, r.by || ""))));
+  const arc = state.config.archive;
+  const el = document.getElementById("archive");
+  el.hidden = !(arc && safeHref(arc.href));
+  if (!el.hidden) el.replaceChildren(anchor({label: arc.label || "Older log", href: arc.href}));
+}
+
+function renderStamp() {
+  const last = [...state.needs, ...state.tasks, ...state.sessions, ...state.log].map(d => d.updated || d.at).filter(Boolean).sort().pop();
+  document.getElementById("stamp").textContent = last ? "Live · last change " + ago(last) : "Live";
+}
+function renderAll() { renderHeader(); renderNeeds(); renderSessions(); renderWork(); renderMap(); renderLog(); renderStamp(); }
+
+async function start() {
+  try { db = await window.claude?.use?.("db"); } catch { db = null; }
+  window.claude?.use?.("comments").then(c => { comments = c; }, () => {});
+  if (!db) {
+    document.getElementById("title").textContent = document.title;
+    document.getElementById("needs").replaceChildren(h("p", {class: "notice"}, "The live state isn't reachable from this view. Open the page signed in to claude.ai to see and answer what's waiting."));
+    flash("Offline view");
+    return;
+  }
+  const fail = e => flash("Live updates stopped (" + e.code + "). Reload the page.");
+  db.doc("config/main").onSnapshot(snap => { state.config = snap.data() || {}; renderAll(); }, fail);
+  for (const name of ["needs", "tasks", "sessions", "log"]) {
+    db.collection(name).onSnapshot(snap => {
+      state[name] = snap.docs.map(d => ({id: d.id, ...d.data()}));
+      if (name === "tasks") state.tasks = state.tasks.map(normalize);
+      if (name === "needs") renderNeeds(); else renderAll();
+      renderStamp();
+    }, fail);
+  }
+  const dlg = document.getElementById("card-dialog");
+  dlg.addEventListener("close", () => { state.dialog = null; });
+  dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
+  document.getElementById("addtask").addEventListener("submit", async e => {
+    e.preventDefault();
+    const title = document.getElementById("add-title").value.trim();
+    if (!title) return;
+    const owner = document.getElementById("add-owner").value;
+    const now = new Date().toISOString();
+    const stage = (stages().find(s => !s.owner && !s.aside && s.key !== "done") || firstBoardStage()).key;
+    const num = state.config.nextT || 1 + Math.max(0, ...state.tasks.map(t => t.num || 0));
+    try { await db.doc("config/main").update({nextT: num + 1}); } catch {}
+    const doc = {num, title, type: document.getElementById("add-type").value, area: document.getElementById("add-area").value || null, stage, owner, state: "", order: 0, created: now, updated: now};
+    try { await db.collection("tasks").add(doc); document.getElementById("add-title").value = ""; }
+    catch (err) { flash("Couldn't add: " + (err.message || err.code)); }
+  });
+}
+start();
+</script>

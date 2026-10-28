@@ -1,0 +1,14 @@
+{
+  "name": "option-zero",
+  "owner": {
+    "name": "Option Zero"
+  },
+  "description": "Claude Code skills from Option Zero.",
+  "plugins": [
+    {
+      "name": "option-zero-skills",
+      "source": "./",
+      "description": "kaiban and design-spike skills for Claude Code."
+    }
+  ]
+}
