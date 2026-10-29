@@ -36,3 +36,7 @@ To get updates later, run `/plugin marketplace update option-zero`.
 - **design-spike**: nothing extra. With the Claude Docs connector, the spike is written
   as a Claude Doc you can comment on. Without it, the spike is a Markdown file in your
   project. Ask a session to "run a design spike on …".
+
+## License
+
+MIT. See [LICENSE](LICENSE).
