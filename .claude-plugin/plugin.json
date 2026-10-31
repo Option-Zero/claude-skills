@@ -1,7 +1,7 @@
 {
   "name": "option-zero-skills",
-  "description": "Option Zero's Claude Code skills: kaiban, a live board several Claude Code sessions share with you, and design-spike, for planning a big piece of work before anyone builds it.",
-  "version": "1.0.0",
+  "description": "Option Zero's Claude Code skills: kaiban, a live board several Claude Code sessions share with you, design-spike, for planning a big piece of work before anyone builds it, and role skills for a PM, designer, dev and reviewer.",
+  "version": "1.1.0",
   "author": {
     "name": "Option Zero"
   },

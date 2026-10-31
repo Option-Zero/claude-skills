@@ -26,9 +26,15 @@ name (what `ListAgents` shows), and the person by `config.me`.
 - **`needs/<id>`**: something only the person can do.
   `title`, `kind` (`decision` · `action` · `blocker`), `body`, optional `steps` (strings),
   `links` (`[{label, href}]`), `options` (decisions: `[{key, label, detail, rec}]`, one
-  marked `rec: true`), `doneLabel` (actions: the button's words, e.g. "Both are on
+  marked `rec: true`), `items` (a list of proposals or questions answered in one ask, one
+  row each: `[{key, text, detail?, kind?, options?}]`; `kind: "question"` takes its own
+  `options` as a dropdown, or a typed answer when it has none, and anything else is a
+  proposal answered Accept / Accept with changes / Later / Reject; the answer then carries
+  `items: {key: {choice, label, note}}`), `doneLabel` (actions: the button's words, e.g. "Both are on
   staging"), `blocks` (blockers: what's blocked), `actFor` (the session that acts on the
-  answer), `order`, `created`, `status` (`open` → `answered` → `closed`), `answer` (written
+  answer), `task` (the id of the card it's about: the ask is parked while that card sits in a
+  stage no session owns, such as Up next, Later or Done), `parked` (true when the person
+  pressed "Not now"), `order`, `created`, `status` (`open` → `answered` → `closed`), `answer` (written
   by the page: `{choice, label, note, at}`), `updated`.
 - **`sessions/<name>`**: `name`, `role` (a few words), `model`, `now` (one sentence on what
   it's doing), `state` (`working` · `waiting` · `idle`), `updated`.
@@ -69,7 +75,8 @@ each box's open to-dos and who is on them from `tasks`.
 
 ## Setting up a board
 
-1. `ListAgents` to learn the session names. Ask the person for their name if you don't have it.
+1. `ListAgents` to learn the session names. Ask the person what to call them, for
+   `config.me`, even when the account shows a name: it may not be the one they use.
 2. Copy `template.html` to your scratchpad, replace `KAIBAN_TITLE` with the project's name
    plus "kaiban" (e.g. "JoyRiders kaiban"), and publish it with
    `capabilities: {db: {}, user: {}, comments: {}}`. The publishing session is the relay:
@@ -82,6 +89,27 @@ each box's open to-dos and who is on them from `tasks`.
    is what keeps sessions using the board.
 5. Message each running session (`SendMessage`) with the board's URL and the block's
    contents, since sessions already running don't reread `CLAUDE.local.md`.
+6. **Check each session can do its whole job before the first card**: write the board,
+   reach Claude Docs if specs live there, and for dev, merge and deploy. Ask each to try
+   and report. A gap found now is one fix; found mid-card, it's a stalled card.
+7. **Agree a merge rule with the person** and put it in the project's `CLAUDE.md`. The
+   default to offer: a PR that has passed review, with green checks, no migration and
+   nothing that reaches people outside the app (emails, calendar invites, mailing-list
+   contacts), merges without an ask and gets a log row; everything else asks.
+
+## Roles
+
+What worked on JoyRiders (retro, 10-31): long-lived sessions for the roles that carry
+context from card to card, and a fresh agent where independence matters more.
+
+- **Orchestrator**: publishes the board, relays its comments, keeps the skills and the
+  board in shape, runs retros. Its session name ends in `-orchestrator`.
+- **PM, designer, dev**: long-lived sessions, each loading its role skill (`pm-role`,
+  `designer-role`, `dev-role`). The role skills point to the official plugins and add
+  the rules we learned.
+- **Reviewer**: a fresh subagent per PR (`reviewer-role`), not a standing session. The
+  board's Review stage can still exist; the session that moves a card there spawns the
+  reviewer.
 
 To move a project's board to a newer template, read the artifact, then publish the new
 template (title filled in) with its `url`. The data stays where it is.
@@ -93,10 +121,12 @@ template (title filled in) with its `url`. The data stays where it is.
   owner sets `state: "doing"` and `pickedUpAt`.
 - **The board can't wake a session, so one session relays.** A write to the board starts
   no turn. Instead, when the person answers an ask or hands a card to a session, the page
-  also sends a short comment to Claude ("Kaiban relay to <session>: …"). That wakes the
+  also sends a short comment to Claude ("Kaiban relay to <session>. …"). That wakes the
   session watching the board with comment auto-replies armed (the one that published
-  it), the **relay**. The relay passes the text on with `SendMessage`, replies "Passed to
-  <session>" and resolves the thread. A session handing a card to another sends it a
+  it), the **relay**, usually the orchestrator. The relay passes the text on with
+  `SendMessage`, replies only "Passed to <session>" (never what will be done: it isn't
+  the one doing it) and resolves the thread. The page waits 10 seconds after a drag
+  before sending, so quick re-drags send one handoff, to where the card ends up. A session handing a card to another sends it a
   one-line `SendMessage` itself. Every session also keeps an hourly safety-net check
   (`CronCreate`) in case the relay isn't running; `session-block.md` has the wording.
 - **A card's type sets how it's handled.** A spike moves through the person's checkpoints, not
@@ -104,6 +134,14 @@ template (title filled in) with its `url`. The data stays where it is.
   the spike itself goes to Done. A bug needs steps to reproduce before anyone picks it up.
 - **Moving a card on is the handoff.** Design done means moving the card to the next stage
   (Build), not just marking it done. Write all the handoff fields together.
+- **Several questions are one ask.** A list of proposals or questions goes on the board
+  as one ask with `items`, not as a numbered list in chat. In chat, ask one question per
+  turn.
+- **An answer given in chat needs no ask.** Log the decision; don't post an ask just to
+  close it. Times on the board come from the clock (`date -u`), never typed by hand.
+- **Save a rule the second time it comes up.** When the person corrects the same thing
+  twice, the session adds the rule to where it belongs (the design system, the code
+  style) right then and tells them in one line.
 - **A decision leaves Needs you and enters the log together.** The acting session sets the
   need's `status: "closed"` and adds the log row in one batch. An answered ask waiting only
   on results isn't a need.

@@ -56,6 +56,9 @@ textarea{width:100%;min-height:56px;resize:vertical}
 .ask.blocker{border-color:var(--block);background:var(--block-soft)}
 .ask .top{display:flex;gap:8px;align-items:baseline;justify-content:space-between;flex-wrap:wrap}
 .ask .title{font-weight:600;font-size:16px}
+.parked{border:1px dashed var(--line);border-radius:10px;padding:10px 16px}
+.parked > summary{cursor:pointer;color:var(--muted);font-size:14px}
+.parked > .needs{margin-top:12px}
 .ask ol{margin:0;padding-left:20px;display:grid;gap:4px;font-size:14px}
 .opts{display:grid;gap:8px}
 .opt{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;align-items:start;text-align:left;padding:10px 12px;border-radius:8px;border:1px solid var(--line);cursor:pointer}
@@ -65,6 +68,11 @@ textarea{width:100%;min-height:56px;resize:vertical}
 .opt.on{border-color:var(--accent);background:var(--accent-soft)}
 .opt .rec-tag{font-family:var(--mono);font-size:11px;color:var(--accent);margin-left:6px}
 .act{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.items{display:grid;gap:8px}
+.item{display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:start;padding:10px 12px;border-radius:8px;border:1px solid var(--line);font-size:14px}
+.item .d{color:var(--muted);font-size:13.5px}
+.item .note{grid-column:1/-1}
+@media (max-width:560px){.item{grid-template-columns:1fr}}
 .answered{display:grid;gap:6px}
 .answered .row{display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;font-size:14px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
 
@@ -232,7 +240,7 @@ details.how ol{margin:10px 0 0;padding-left:20px;display:grid;gap:6px;max-width:
       <li>A session keeps its row in <code>sessions</code> current: what it's doing now, its state, when it last checked in.</li>
       <li><b>Handing off</b> is moving a card to the next stage: its <code>stage</code>, the stage's session as <code>owner</code>, <code>state: "handed"</code>, <code>from</code> and <code>handedAt</code>. Dragging a card into a session's column does exactly that. A message to the other session is a nudge; the card is the record.</li>
       <li><b>Picking up</b> sets <code>state: "doing"</code> and <code>pickedUpAt</code>. Until then the card says "not picked up".</li>
-      <li><b>Asking you</b> adds a <code>needs</code> doc with options and <code>actFor</code>, the session that acts on the answer. It closes the ask and logs it once it has acted.</li>
+      <li><b>Asking you</b> adds a <code>needs</code> doc with options and <code>actFor</code>, the session that acts on the answer. A list of proposals or questions goes in one ask as <code>items</code>, answered one row at a time. It closes the ask and logs it once it has acted.</li>
       <li><b>Done</b> moves the card to <code>stage: "done"</code> and adds a <code>log</code> row with links.</li>
     </ol>
   </details>
@@ -261,10 +269,26 @@ async function notifySession(el, text) {
     return true;
   } catch { return false; }
 }
+// The instructions come first so an automatic reply says only who it went to, not what will be done.
 function tellSession(el, who, text) {
   if (!who || who === me()) return;
-  notifySession(el, "Kaiban relay to " + who + " (relay only: pass this to " + who + " with SendMessage, reply \"Passed to " + who + "\", and don't act on it yourself): " + text).then(sent =>
+  notifySession(el, "Kaiban relay to " + who + ". Only pass this on to " + who + " with SendMessage; don't act on it. Your only reply here: \"Passed to " + who + ".\" The message: " + text).then(sent =>
     flash(sent ? "Sent to " + who + "." : "Saved. " + who + " sees it at its next board check."));
+}
+/* A move waits a few seconds, so quick re-drags send one handoff, to where the card ends up. */
+const MOVE_WAIT_MS = 10000;
+const pendingMoves = new Map();
+function tellMoveLater(id, verb) {
+  clearTimeout(pendingMoves.get(id));
+  flash("Saved. Telling the new owner in " + MOVE_WAIT_MS / 1000 + " s, in case you move it again.");
+  pendingMoves.set(id, setTimeout(() => {
+    pendingMoves.delete(id);
+    const t = taskById(id);
+    if (!t || t.state !== "handed" || t.owner === me()) return flash("Saved.");
+    // The board has redrawn by now, so find the card again for the comment's anchor.
+    const el = document.querySelector('#work .card[data-id="' + id + '"]') || document.getElementById("work");
+    tellSession(el, t.owner, me() + " " + verb + " " + named(t) + " to you in " + (stageByKey(t.stage)?.label || t.stage) + " (tasks/" + id + ")");
+  }, MOVE_WAIT_MS));
 }
 let dragId = null;
 
@@ -316,8 +340,8 @@ function taskById(id) { return state.tasks.find(t => t.id === id); }
 
 async function save(path, data) {
   if (!db) return;
-  try { await db.doc(path).update({...data, updated: new Date().toISOString()}); }
-  catch (e) { flash("Couldn't save: " + (e.message || e.code)); }
+  try { await db.doc(path).update({...data, updated: new Date().toISOString()}); return true; }
+  catch (e) { flash("Couldn't save: " + (e.message || e.code)); return false; }
 }
 function flash(msg) { document.getElementById("stamp").textContent = msg; }
 
@@ -331,14 +355,26 @@ function renderHeader() {
 }
 
 /* Needs you */
+// An ask waits quietly while the person parks it ("Not now") or its card sits in a stage no session owns (Up next, Later, Done).
+function parkedWhy(n) {
+  if (n.parked) return "you parked it";
+  const t = n.task && taskById(n.task);
+  if (t && !stageByKey(t.stage)?.owner) return (ref(t) || named(t)) + " is in " + (stageByKey(t.stage)?.label || t.stage);
+  return "";
+}
 function renderNeeds() {
   const box = document.getElementById("needs");
   const open = state.needs.filter(n => n.status === "open").sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
+  const live = open.filter(n => !parkedWhy(n));
+  const parked = open.filter(n => parkedWhy(n));
   const answered = state.needs.filter(n => n.status === "answered");
-  document.getElementById("needs-count").textContent = open.length ? open.length + " waiting" : "";
+  document.getElementById("needs-count").textContent = live.length ? live.length + " waiting" : "";
   box.replaceChildren();
-  if (!open.length) box.append(h("p", {class: "notice"}, "Nothing is waiting on you."));
-  for (const n of open) box.append(askCard(n));
+  if (!live.length) box.append(h("p", {class: "notice"}, "Nothing is waiting on you."));
+  for (const n of live) box.append(askCard(n));
+  if (parked.length) box.append(h("details", {class: "parked", open: state.parkedOpen || null, ontoggle: e => { state.parkedOpen = e.target.open; }},
+    h("summary", {}, parked.length + " parked: " + parked.map(n => n.title).join(" · ")),
+    h("div", {class: "needs"}, parked.map(askCard))));
 
   const ans = document.getElementById("answered");
   ans.replaceChildren();
@@ -351,6 +387,44 @@ function renderNeeds() {
       db ? h("button", {class: "link", onclick: () => save("needs/" + n.id, {status: "open", answer: null})}, "Undo") : null));
   }
 }
+const PROPOSAL_CHOICES = [{key: "accept", label: "Accept"}, {key: "changes", label: "Accept with changes"}, {key: "later", label: "Later"}, {key: "reject", label: "Reject"}];
+/* An ask with several items: one row each, answered with one tap per row, like a table with a Decision column.
+   A proposal gets Accept / changes / Later / Reject; a question gets its own options, or a text answer when it has none. */
+function itemsAsk(n, card) {
+  const picks = state.picks[n.id] ||= {};
+  const rows = n.items.map(it => {
+    const choices = it.kind === "question" ? (it.options || []) : PROPOSAL_CHOICES;
+    const p = picks[it.key] ||= {choice: "", note: ""};
+    const input = choices.length
+      ? h("select", {"aria-label": it.text, disabled: !db, onchange: e => { p.choice = e.target.value; ready(); }},
+          h("option", {value: ""}, "Pick…"), choices.map(c => h("option", {value: c.key, selected: p.choice === c.key}, c.label + (c.rec ? " (recommended)" : ""))))
+      : h("input", {type: "text", placeholder: "Your answer", "aria-label": it.text, disabled: !db, oninput: e => { p.choice = e.target.value.trim(); ready(); }});
+    if (!choices.length) input.value = p.choice;
+    const note = h("input", {type: "text", class: "note", placeholder: "Note (optional)", "aria-label": "Note on " + it.text, disabled: !db, oninput: e => { p.note = e.target.value; }});
+    note.value = p.note;
+    return h("div", {class: "item"}, h("div", {}, h("b", {}, it.text), it.detail ? h("div", {class: "d"}, it.detail) : null), input, db ? note : null);
+  });
+  card.append(h("div", {class: "items"}, rows));
+  const labelFor = it => {
+    const c = picks[it.key].choice;
+    return (it.kind === "question" ? (it.options || []) : PROPOSAL_CHOICES).find(o => o.key === c)?.label || c;
+  };
+  const send = h("button", {class: "primary", onclick: async () => {
+    const items = Object.fromEntries(n.items.map(it => [it.key, {choice: picks[it.key].choice, label: labelFor(it), note: picks[it.key].note.trim()}]));
+    const summary = n.items.map((it, i) => (i + 1) + ". " + labelFor(it) + (items[it.key].note ? " (" + items[it.key].note + ")" : "")).join("; ");
+    tellSession(card, n.actFor, me() + " answered \"" + n.title + "\": " + summary + " (needs/" + n.id + ")");
+    await save("needs/" + n.id, {status: "answered", answer: {choice: "items", label: summary, note: "", items, at: new Date().toISOString()}});
+    delete state.picks[n.id];
+  }}, "Send answers");
+  const left = h("span", {class: "small muted"});
+  function ready() {
+    const missing = n.items.filter(it => !picks[it.key].choice).length;
+    send.disabled = missing > 0;
+    left.textContent = missing ? missing + " of " + n.items.length + " still to pick" : "";
+  }
+  ready();
+  return [send, left];
+}
 function askCard(n) {
   const opts = n.options || [];
   const pick = state.picks[n.id] ?? (opts.find(o => o.rec)?.key);
@@ -362,6 +436,7 @@ function askCard(n) {
   if (n.steps?.length) card.append(h("ol", {}, n.steps.map(s => h("li", {}, s))));
   const askLinks = linkList(n.links);
   if (askLinks) card.append(askLinks);
+  const itemControls = n.items?.length ? itemsAsk(n, card) : null;
   if (opts.length) {
     card.append(h("div", {class: "opts", role: "radiogroup", "aria-label": n.title}, opts.map(o =>
       h("label", {class: "opt" + (o.rec ? " rec" : "") + (pick === o.key ? " on" : "")},
@@ -375,15 +450,18 @@ function askCard(n) {
     ta.value = state.notes[n.id] || "";
     ta.addEventListener("input", () => { state.notes[n.id] = ta.value; });
     const chosen = opts.find(o => o.key === pick);
-    card.append(ta, h("div", {class: "act"},
-      h("button", {class: "primary", disabled: opts.length > 0 && !chosen, onclick: async () => {
+    card.append(itemControls ? "" : ta, h("div", {class: "act"},
+      itemControls || h("button", {class: "primary", disabled: opts.length > 0 && !chosen, onclick: async () => {
         const label = chosen?.label || n.doneLabel || "Done";
         const note = ta.value.trim();
         tellSession(card, n.actFor, me() + " answered \"" + n.title + "\": " + label + (note ? ". Note: " + note : "") + " (needs/" + n.id + ")");
         await save("needs/" + n.id, {status: "answered", answer: {choice: chosen?.key || "done", label, note, at: new Date().toISOString()}});
         delete state.notes[n.id]; delete state.picks[n.id];
       }}, opts.length ? "Send answer" : (n.doneLabel || "Mark done")),
-      n.actFor ? h("span", {class: "small muted"}, "Goes to ", ownerChip(n.actFor)) : null));
+      n.actFor ? h("span", {class: "small muted"}, "Goes to ", ownerChip(n.actFor)) : null,
+      n.parked ? h("button", {class: "link", onclick: () => save("needs/" + n.id, {parked: false})}, "Bring back")
+        : parkedWhy(n) ? h("span", {class: "small muted"}, "Parked: " + parkedWhy(n))
+        : h("button", {class: "link", onclick: () => save("needs/" + n.id, {parked: true})}, "Not now")));
   }
   return card;
 }
@@ -460,8 +538,7 @@ function dropZone(col, stageKey) {
     const prev = i > 0 ? order(rows[i - 1].dataset.id) : (after ? order(after.dataset.id) - 2 : 0);
     const next = after ? order(after.dataset.id) : prev + 2;
     const patch = movePatch(t, stageKey);
-    if (patch.state === "handed") tellSession(col, patch.owner, me() + " moved " + named(t) + " to " + (stageByKey(stageKey)?.label || stageKey) + " for you (tasks/" + t.id + ")");
-    save("tasks/" + t.id, {...patch, order: (prev + next) / 2});
+    save("tasks/" + t.id, {...patch, order: (prev + next) / 2}).then(ok => ok && (patch.state === "handed" || pendingMoves.has(t.id)) && tellMoveLater(t.id, "moved"));
   });
 }
 
@@ -514,8 +591,6 @@ function renderCardDialog(force) {
   if (t.notes) body.append(h("details", {class: "notes"}, h("summary", {}, "For sessions"), h("p", {}, t.notes)));
   const trail = [t.owner && !showOwner && "owner " + t.owner, t.from && "from " + t.from, t.handedAt && "handed " + mmdd(t.handedAt), t.pickedUpAt && "picked up " + mmdd(t.pickedUpAt), t.updated && "updated " + ago(t.updated)].filter(Boolean).join(" · ");
   if (trail) body.append(h("span", {class: "small muted"}, trail));
-  // A relay comment anchors to the card on the board, so the thread points at it.
-  const anchorEl = () => document.querySelector('#work .card[data-id="' + t.id + '"]') || dlg;
   if (db) {
     const stageSel = h("select", {"aria-label": "Stage"}, stages().map(s => h("option", {value: s.key, selected: s.key === t.stage}, s.label)));
     const ownerSel = h("select", {"aria-label": "Owner"}, people().map(p => h("option", {value: p, selected: p === t.owner}, p)));
@@ -529,10 +604,13 @@ function renderCardDialog(force) {
           if (stateSel.value !== (t.state || "")) patch.state = stateSel.value;
           if (typeSel.value !== (t.type || "")) patch.type = typeSel.value;
           if (patch.state === "doing" && !t.pickedUpAt) patch.pickedUpAt = nowIso();
-          if (patch.state === "handed") tellSession(anchorEl(), patch.owner, me() + " handed " + named(t) + " to you in " + (stageByKey(patch.stage || t.stage)?.label || "the board") + " (tasks/" + t.id + ")");
-          save("tasks/" + t.id, patch);
+          save("tasks/" + t.id, patch).then(ok => {
+            if (!ok) return;
+            if (patch.state === "handed" || pendingMoves.has(t.id)) tellMoveLater(t.id, "handed");
+            dlg.close();
+          });
         }}, "Save"),
-        t.state === "wontdo" ? null : h("button", {class: "link", onclick: () => save("tasks/" + t.id, {stage: "done", state: "wontdo"})}, "Won't do"),
+        t.state === "wontdo" ? null : h("button", {class: "link", onclick: () => save("tasks/" + t.id, {stage: "done", state: "wontdo"}).then(ok => ok && dlg.close())}, "Won't do"),
         h("button", {class: "link danger", onclick: e => {
           e.target.parentNode.replaceChildren("Delete for good? ",
             h("button", {class: "link danger", onclick: () => db.doc("tasks/" + t.id).delete().then(() => dlg.close(), err => flash("Couldn't delete: " + (err.message || err.code)))}, "Delete"),
