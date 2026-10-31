@@ -28,7 +28,7 @@ name (what `ListAgents` shows), and the person by `config.me`.
   `links` (`[{label, href}]`), `options` (decisions: `[{key, label, detail, rec}]`, one
   marked `rec: true`), `items` (a list of proposals or questions answered in one ask, one
   row each: `[{key, text, detail?, kind?, options?}]`; `kind: "question"` takes its own
-  `options` as a dropdown, or a typed answer when it has none, and anything else is a
+  `options` (`[{key, label, rec?}]`, or plain strings) as a dropdown, or a typed answer when it has none, and anything else is a
   proposal answered Accept / Accept with changes / Later / Reject; the answer then carries
   `items: {key: {choice, label, note}}`), `doneLabel` (actions: the button's words, e.g. "Both are on
   staging"), `blocks` (blockers: what's blocked), `actFor` (the session that acts on the

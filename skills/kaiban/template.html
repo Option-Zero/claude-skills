@@ -392,8 +392,10 @@ const PROPOSAL_CHOICES = [{key: "accept", label: "Accept"}, {key: "changes", lab
    A proposal gets Accept / changes / Later / Reject; a question gets its own options, or a text answer when it has none. */
 function itemsAsk(n, card) {
   const picks = state.picks[n.id] ||= {};
+  // A question's options may be written as plain strings; read each as its own key and label.
+  const choicesFor = it => it.kind === "question" ? (it.options || []).map(o => typeof o === "string" ? {key: o, label: o} : o) : PROPOSAL_CHOICES;
   const rows = n.items.map(it => {
-    const choices = it.kind === "question" ? (it.options || []) : PROPOSAL_CHOICES;
+    const choices = choicesFor(it);
     const p = picks[it.key] ||= {choice: "", note: ""};
     const input = choices.length
       ? h("select", {"aria-label": it.text, disabled: !db, onchange: e => { p.choice = e.target.value; ready(); }},
@@ -407,7 +409,7 @@ function itemsAsk(n, card) {
   card.append(h("div", {class: "items"}, rows));
   const labelFor = it => {
     const c = picks[it.key].choice;
-    return (it.kind === "question" ? (it.options || []) : PROPOSAL_CHOICES).find(o => o.key === c)?.label || c;
+    return choicesFor(it).find(o => o.key === c)?.label || c;
   };
   const send = h("button", {class: "primary", onclick: async () => {
     const items = Object.fromEntries(n.items.map(it => [it.key, {choice: picks[it.key].choice, label: labelFor(it), note: picks[it.key].note.trim()}]));
