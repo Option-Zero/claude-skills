@@ -25,6 +25,9 @@ reviewer, e.g. `pr-review-toolkit:code-reviewer`, and gives it:
 - this checklist,
 - **not** the author's reasoning: the diff and the card only.
 
+The reviewer checks the PR out in its own git worktree off origin (in a scratchpad),
+never with `git checkout` in the shared repo, where other sessions are working.
+
 ## Checklist
 
 - **What does the PR make untrue elsewhere?** Search the behaviour doc and the decision
