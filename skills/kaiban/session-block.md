@@ -34,7 +34,10 @@ that URL (load the `kaiban` skill for the data fields). Your session name is wha
   next check. PERSON may also drag cards between columns; treat where a card is as
   their call.
 - **Asking PERSON something** is a `needs` doc with options (one recommended) and
-  `actFor` set to you. Don't ask in chat alone.
+  `actFor` set to you. Don't ask in chat alone. Several questions or proposals go in one
+  ask as `items`, one row each, not as a numbered list in chat. When PERSON answers in
+  chat, log the decision and skip the ask. Board times come from `date -u`, never typed. When the ask is about a card, set `task` to the card's id, so the
+  ask stays parked while the card isn't in progress.
 - **When work ships or a decision is made**, move the card to `done` and add a `log` row
   (numbered from `config/main`'s `nextD` or `nextA`, bumped in the same batch with
   `if_version`) with its links.
@@ -54,4 +57,8 @@ that URL (load the `kaiban` skill for the data fields). Your session name is wha
   for a spike or anything big, a short spec on the card (a needs ask with options, then
   the result in `detail`) for a small story or bug. A spike ends in new cards and goes to
   Done. A story or bug moves on to the next stage once PERSON accepts the spec.
+- **Merging** follows the merge rule in `CLAUDE.md`. Where it lets a PR merge without an
+  ask, merge and add an A row to the log instead of asking.
+- **Load your role skill** if there is one for your role (`pm-role`, `designer-role`,
+  `dev-role`; review uses `reviewer-role` as a fresh subagent per PR).
 - **Any to-do you'd otherwise keep in memory** goes on the board in the Later stage.
