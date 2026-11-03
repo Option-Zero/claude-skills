@@ -27,8 +27,8 @@ a mistake made on a real project.
 
 ## Asking the person
 
-- One question per chat turn. Several questions or proposals go on the board as one ask
-  with `items` (see `kaiban`), one row each.
+- Several questions or proposals go on the board as one ask with `items` (see
+  `kaiban`), one row each, and in chat as a numbered list matching the rows.
 - When they answer in chat, log the decision; don't also post an ask for it.
 - Fold overlapping cards into one spec when you spot the overlap.
 

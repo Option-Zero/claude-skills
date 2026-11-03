@@ -35,7 +35,7 @@ that URL (load the `kaiban` skill for the data fields). Your session name is wha
   their call.
 - **Asking PERSON something** is a `needs` doc with options (one recommended) and
   `actFor` set to you. Don't ask in chat alone. Several questions or proposals go in one
-  ask as `items`, one row each, not as a numbered list in chat. When PERSON answers in
+  ask as `items`, one row each; list them in chat too, numbered to match. When PERSON answers in
   chat, log the decision and skip the ask. Board times come from `date -u`, never typed. When the ask is about a card, set `task` to the card's id, so the
   ask stays parked while the card isn't in progress.
 - **When work ships or a decision is made**, move the card to `done` and add a `log` row

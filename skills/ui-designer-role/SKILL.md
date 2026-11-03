@@ -42,6 +42,6 @@ a mistake made on a real project.
 
 ## Asking the person
 
-- One question per chat turn. A list of choices goes on the board as one ask with
-  `items` (see `kaiban`), not as a numbered list in chat.
+- A list of choices goes on the board as one ask with `items` (see `kaiban`), one row
+  each, and in chat as a numbered list matching the rows.
 - When they answer in chat, log the decision; don't also post an ask for it.

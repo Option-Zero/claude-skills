@@ -139,8 +139,8 @@ template (title filled in) with its `url`. The data stays where it is.
 - **Moving a card on is the handoff.** Design done means moving the card to the next stage
   (Build), not just marking it done. Write all the handoff fields together.
 - **Several questions are one ask.** A list of proposals or questions goes on the board
-  as one ask with `items`, not as a numbered list in chat. In chat, ask one question per
-  turn.
+  as one ask with `items`, one row each. List the same questions in chat too, numbered
+  and matching the rows, so the person can answer in either place.
 - **An answer given in chat needs no ask.** Log the decision; don't post an ask just to
   close it. Times on the board come from the clock (`date -u`), never typed by hand.
 - **Save a rule the second time it comes up.** When the person corrects the same thing
