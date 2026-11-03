@@ -59,6 +59,6 @@ that URL (load the `kaiban` skill for the data fields). Your session name is wha
   Done. A story or bug moves on to the next stage once PERSON accepts the spec.
 - **Merging** follows the merge rule in `CLAUDE.md`. Where it lets a PR merge without an
   ask, merge and add an A row to the log instead of asking.
-- **Load your role skill** if there is one for your role (`pm-role`, `designer-role`,
+- **Load your role skill** if there is one for your role (`pm-role`, `ui-designer-role`,
   `dev-role`; review uses `reviewer-role` as a fresh subagent per PR).
 - **Any to-do you'd otherwise keep in memory** goes on the board in the Later stage.

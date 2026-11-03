@@ -11,9 +11,9 @@ Skills for working with a team of Claude Code sessions.
   weigh several options (always including Option Zero, doing nothing), choose, then
   break the choice into cards. Adapted from
   [The Design Spike](https://medium.com/option-zero/what-is-a-design-spike-7906385663c2).
-- **Role skills** (`pm-role`, `designer-role`, `dev-role`, `reviewer-role`): thin files,
+- **Role skills** (`pm-role`, `ui-designer-role`, `dev-role`, `reviewer-role`): thin files,
   one per role on the team. Each points to the official Anthropic plugin for that role
-  and adds the rules we learned on a real project. PM, designer and
+  and adds the rules we learned on a real project. PM, UI designer and
   dev are long-lived sessions; review is a fresh subagent per PR.
 
 ## Install

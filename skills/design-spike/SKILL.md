@@ -22,7 +22,7 @@ Adapted from Jaime Curtis's [The Design Spike](https://medium.com/option-zero/wh
   per option to cost it out), but you write the document.
 - **The person** decides. They agree the framing, choose the solution and accept the
   breakdown. Their checkpoints replace the article's review meetings.
-- **Other sessions** (designer, dev, reviewer) are the team. They read the finished spike
+- **Other sessions** (UI designer, dev, reviewer) are the team. They read the finished spike
   and pick up its proposed work. Ask one for an opinion only where its knowledge matters,
   e.g. the reviewer on risk, and put its answer in the doc.
 

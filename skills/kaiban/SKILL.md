@@ -61,7 +61,7 @@ typical set:
 [{"key": "later", "label": "Later and ideas", "aside": true},
  {"key": "next", "label": "Up next"},
  {"key": "spec", "label": "Spec", "owner": "<planning session>"},
- {"key": "design", "label": "UI", "owner": "<designer session>"},
+ {"key": "design", "label": "UI", "owner": "<ui-designer session>"},
  {"key": "build", "label": "Build and review", "owner": "<dev session>"},
  {"key": "done", "label": "Done", "aside": true}]
 ```
@@ -109,8 +109,8 @@ context from card to card, and a fresh agent where independence matters more.
 
 - **Orchestrator**: publishes the board, relays its comments, keeps the skills and the
   board in shape, runs retros. It's named `<short>-orchestrator`, e.g. `bk-orchestrator`.
-- **PM, designer, dev**: long-lived sessions, each loading its role skill (`pm-role`,
-  `designer-role`, `dev-role`). The role skills point to the official plugins and add
+- **PM, UI designer, dev**: long-lived sessions, each loading its role skill (`pm-role`,
+  `ui-designer-role`, `dev-role`). The role skills point to the official plugins and add
   the rules we learned.
 - **Reviewer**: a fresh subagent per PR (`reviewer-role`), not a standing session. The dev
   session spawns it for each PR, so one Build and review column covers both.

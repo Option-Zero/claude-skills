@@ -35,7 +35,7 @@ top, each from a mistake made on a real project.
 - **Look at it in a browser.** For any change to a screen, take screenshots at 390 and
   1280 px, light and dark, logged in as the role that sees it (the project's screenshot
   script if it has one), and put them on the card. The reviewer won't approve without
-  them. Dark-mode contrast bugs otherwise reach the designer's pass.
+  them. Dark-mode contrast bugs otherwise reach the UI designer's pass.
 - Run the project's checks (lint, types, tests, build) as its code style says.
 
 ## Merging
