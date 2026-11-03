@@ -69,10 +69,13 @@ textarea{width:100%;min-height:56px;resize:vertical}
 .opt .rec-tag{font-family:var(--mono);font-size:11px;color:var(--accent);margin-left:6px}
 .act{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .items{display:grid;gap:8px}
-.item{display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:start;padding:10px 12px;border-radius:8px;border:1px solid var(--line);font-size:14px}
+.item{display:grid;grid-template-columns:minmax(0,1fr) auto;min-width:0;gap:6px 10px;align-items:start;padding:10px 12px;border-radius:8px;border:1px solid var(--line);font-size:14px}
 .item .d{color:var(--muted);font-size:13.5px}
 .item .note{grid-column:1/-1}
-@media (max-width:560px){.item{grid-template-columns:1fr}}
+/* A select is as wide as its longest option; cap it so the question keeps the room. */
+.item select{max-width:min(320px,45vw);width:100%}
+.item > div{min-width:0}
+@media (max-width:560px){.item{grid-template-columns:1fr}.item select{max-width:100%}}
 .answered{display:grid;gap:6px}
 .answered .row{display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;font-size:14px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
 
