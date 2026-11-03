@@ -22,7 +22,7 @@ Adapted from Jaime Curtis's [The Design Spike](https://medium.com/option-zero/wh
   per option to cost it out), but you write the document.
 - **The person** decides. They agree the framing, choose the solution and accept the
   breakdown. Their checkpoints replace the article's review meetings.
-- **Other sessions** (designer, dev, reviewer) are the team. They read the finished spike
+- **Other sessions** (UI designer, dev, reviewer) are the team. They read the finished spike
   and pick up its proposed work. Ask one for an opinion only where its knowledge matters,
   e.g. the reviewer on risk, and put its answer in the doc.
 
@@ -42,7 +42,7 @@ Link it from the project's board if it has one (a kaiban task or log row).
 The person reviews the spike by commenting on the doc, and **the session running the
 spike answers every comment.** Don't leave it to the doc: an @Claude comment on a Claude
 Doc starts a fresh cloud session that has none of the project, the repo or this
-conversation. It answers anyway, and its answers are guesses. Seen on JoyRiders, 10-28.
+conversation. It answers anyway, and its answers are guesses.
 
 - **Ask the person to paste the doc's link back to you.** Right after creating the doc,
   ask them in chat (one line) to paste its link so you can watch it. A session can only
@@ -56,10 +56,13 @@ conversation. It answers anyway, and its answers are guesses. Seen on JoyRiders,
   off-minute (e.g. `3,13,23,33,43,53 * * * *`). Its prompt: read this doc's comments
   and answer any new ones. Also check at the start of every turn the person sends you.
   Delete the cron when the spike is Done or Dropped.
-- **Find new comments** with the Docs `query` (`object: "utterance"`, `under` the tab's
-  body) with `afterSeq` set to the last `seq` you handled. Keep that number where the
-  next check finds it: the kaiban card's `commentSeq`, or a line in the spike doc's
-  working notes. Every comment by the person after it is new, @Claude or not.
+- **Find new comments** with the Docs `query` (`object: "utterance"`), `under` the
+  **tab** (`{"object": "file", "id": <tab id>}`), not the tab's body node: listing under
+  the body has stopped returning new threads. Don't trust `afterSeq` or
+  the watch alone: look at every thread's last comment, and any thread whose last word
+  is the person's is waiting on you, @Claude or not. Keep the last `seq` you handled
+  where the next check finds it (the kaiban card's `commentSeq`, or a line in the spike
+  doc's working notes) as a shortcut, not as the test.
 - **Answer each one** in its thread (Docs `create`, an utterance whose parent is the
   thread's first comment), about 40 words. A question gets an answer, checked against
   the code. A change gets made in the doc, and the reply says what changed. Start your
@@ -77,10 +80,10 @@ matter more than the template.
 1. **Status.** One line at the top: `Framing` · `Choosing` · `Breaking down` · `Done`
    (with links to the resulting cards) · `Dropped` (and why). Keep it current, since
    several sessions may read the doc.
-2. **Goal.** What the spike is for. Learning something (can Neon's API do X?) is a
+2. **Goal.** What the spike is for. Learning something (can this API do X?) is a
    different spike from choosing a solution and producing work.
 3. **Context.** What a reader needs in order to have an opinion: how things work today,
-   with `file:line` links, real numbers (rows, rides, emails a week), and earlier
+   with `file:line` links, real numbers (rows, users, emails a week), and earlier
    decisions that constrain this one. Measure where you can, and say so when you're
    estimating.
 4. **Problem.** The problem in the person's words, then **reframed**. The best outcome is
@@ -104,17 +107,24 @@ matter more than the template.
 
 ## Process
 
-Three checkpoints with the person. A big spike stops at each one, while a small one can
+Two checks, then three checkpoints with the person. A big spike stops at each one, while a small one can
 fold them into a single message. Each checkpoint is a question with options, one of
 them recommended. On a project with a kaiban, ask it as a `needs` doc so the person can
 answer with a click; otherwise ask in chat.
 
+0. **Before anything else, two checks.** A card with only a title gets one question
+   first: "what do you want from this?" And answer "does the app already do this?"
+   with a file or a screen, written as Option Zero at the top of whatever you ask next.
+   Skipping these, a spec gets thrown away minutes after a four-option ask built from a
+   title alone, or specced in depth for something the app already does.
 1. **Frame.** Draft Goal, Context, Problem (with the reframe) and Requirements. Then ask:
    *is this the right problem?* The options might be "Yes", "Solve the reframed
    problem instead", "Narrow it to …" and "Drop it". Don't draft solutions until the
    framing is agreed: a wrong framing wastes every option written after it.
 2. **Choose.** Draft the Options, including Option Zero, with your recommendation. Ask
-   the person to pick one, or to ask for more options. Throwaway probes are fine here to
+   the person to pick one, or to ask for more options. After two rounds of options
+   without a pick, ask whether today's version is good enough before drafting a third.
+   Throwaway probes are fine here to
    answer a specific unknown (a query, an API call, a ten-line prototype in a worktree),
    but no real building yet.
 3. **Break down.** Write the Decision and the Proposed work, then ask the person to

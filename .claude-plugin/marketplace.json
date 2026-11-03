@@ -8,7 +8,7 @@
     {
       "name": "option-zero-skills",
       "source": "./",
-      "description": "kaiban and design-spike skills for Claude Code."
+      "description": "kaiban, design-spike and team role skills for Claude Code."
     }
   ]
 }
