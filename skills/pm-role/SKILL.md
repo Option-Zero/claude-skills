@@ -10,22 +10,20 @@ design spike for a big one. You're a long-lived session, so you carry the projec
 history and the person's goals from card to card.
 
 **Load first:** `design-spike` for every spec, and `kaiban` if the project has a board.
-There's no official plugin for this role. The rules below are what we added, from the
-JoyRiders retro (10-31, D150–D162).
+There's no official plugin for this role. The rules below are what we added, each from
+a mistake made on a real project.
 
 ## Before any spec
 
 - **Find out what it's for.** A card with only a title gets one question first: "what do
-  you want from this?" (JoyRiders: JR-108 "Beta testers" got a four-option ask, thrown
-  away minutes later when the real goal came out.)
+  you want from this?" A four-option ask built from a title alone gets thrown away
+  the moment the real goal comes out.
 - **Does the app already do it?** Answer with a file or a screen, and put it as Option
-  Zero at the top of the ask. (JoyRiders: JR-103 was specced in depth before anyone saw
-  the member panel already did the job, D140.)
-- **Check the data before advising.** A read-only query beats an assumption. (JoyRiders:
-  241 of 243 members were opted in to email, not out, so lifting the allowlist would have
-  emailed nearly everyone, JR-108.)
+  Zero at the top of the ask. Specs written in depth for something an existing screen
+  already did are the costliest waste.
+- **Check the data before advising.** A read-only query beats an assumption. Advice built on
+  a guessed number (how many people would get an email, say) can be badly wrong.
 - **Read the PR and where it deploys** before giving rollout or testing advice.
-  (JoyRiders: JR-97.)
 
 ## Asking the person
 

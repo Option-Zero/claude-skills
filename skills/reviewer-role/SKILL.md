@@ -8,12 +8,11 @@ description: How a PR gets reviewed on a team of Claude Code sessions - a fresh 
 Review is the one role that gains from a fresh agent every time: a read that doesn't
 share the author's reasoning, so it doesn't inherit its blind spots. So each PR gets a
 **fresh reviewer subagent**, not a long-lived reviewer session. What a long-lived
-reviewer carried in memory goes in the project's code style instead. (JoyRiders retro,
-10-31, D161.)
+reviewer carried in memory goes in the project's code style instead.
 
 **Load first:** the official `pr-review-toolkit` plugin
 (`/plugin install pr-review-toolkit@claude-plugins-official`) for its reviewer agents.
-The rules below are what we added on top, from the JoyRiders retro (D150–D162).
+The rules below are what we added on top, each from a mistake made on a real project.
 
 ## Starting a review
 
@@ -34,10 +33,9 @@ never with `git checkout` in the shared repo, where other sessions are working.
   log for what the PR touches. When a field or a source of truth moves, grep every
   reader of the old one, scripts, seed data, tests and docs included. Most misses had
   this shape: the diff was right, but a doc sentence, an old field's readers or a logged
-  decision were left wrong. (JoyRiders: JR-113, #54, D136.)
+  decision were left wrong.
 - **Does a helper already do this?** Flag any logic that restates an existing helper or
-  rule, such as a status check written inline where a named predicate exists. (JoyRiders:
-  JR-65, JR-70, JR-78; the near-copies of the time, domain and form helpers.)
+  rule, such as a status check written inline where a named predicate exists.
 - **No screenshots, no approval** for a change to a screen: 390 and 1280 px, light and
   dark, on the card (see `dev-role`).
 - Say plainly what you checked and what you didn't. "Not checked in a browser" is a
@@ -47,5 +45,5 @@ never with `git checkout` in the shared repo, where other sessions are working.
 
 The orchestrator spawns one reviewer to read the last 10 bug cards together and look for
 a pattern. A pattern becomes a rule in the code style, named after the bugs it came
-from. (JoyRiders: JR-116 found ten such rules at the end; they should have come along
-the way.)
+from. Found only at the end, a project's ten such rules
+come too late to have prevented anything.

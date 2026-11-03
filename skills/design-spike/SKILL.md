@@ -42,7 +42,7 @@ Link it from the project's board if it has one (a kaiban task or log row).
 The person reviews the spike by commenting on the doc, and **the session running the
 spike answers every comment.** Don't leave it to the doc: an @Claude comment on a Claude
 Doc starts a fresh cloud session that has none of the project, the repo or this
-conversation. It answers anyway, and its answers are guesses. Seen on JoyRiders, 10-28.
+conversation. It answers anyway, and its answers are guesses.
 
 - **Ask the person to paste the doc's link back to you.** Right after creating the doc,
   ask them in chat (one line) to paste its link so you can watch it. A session can only
@@ -58,7 +58,7 @@ conversation. It answers anyway, and its answers are guesses. Seen on JoyRiders,
   Delete the cron when the spike is Done or Dropped.
 - **Find new comments** with the Docs `query` (`object: "utterance"`), `under` the
   **tab** (`{"object": "file", "id": <tab id>}`), not the tab's body node: listing under
-  the body stopped returning new threads on JoyRiders (10-30). Don't trust `afterSeq` or
+  the body has stopped returning new threads. Don't trust `afterSeq` or
   the watch alone: look at every thread's last comment, and any thread whose last word
   is the person's is waiting on you, @Claude or not. Keep the last `seq` you handled
   where the next check finds it (the kaiban card's `commentSeq`, or a line in the spike
@@ -80,10 +80,10 @@ matter more than the template.
 1. **Status.** One line at the top: `Framing` · `Choosing` · `Breaking down` · `Done`
    (with links to the resulting cards) · `Dropped` (and why). Keep it current, since
    several sessions may read the doc.
-2. **Goal.** What the spike is for. Learning something (can Neon's API do X?) is a
+2. **Goal.** What the spike is for. Learning something (can this API do X?) is a
    different spike from choosing a solution and producing work.
 3. **Context.** What a reader needs in order to have an opinion: how things work today,
-   with `file:line` links, real numbers (rows, rides, emails a week), and earlier
+   with `file:line` links, real numbers (rows, users, emails a week), and earlier
    decisions that constrain this one. Measure where you can, and say so when you're
    estimating.
 4. **Problem.** The problem in the person's words, then **reframed**. The best outcome is
@@ -115,9 +115,8 @@ answer with a click; otherwise ask in chat.
 0. **Before anything else, two checks.** A card with only a title gets one question
    first: "what do you want from this?" And answer "does the app already do this?"
    with a file or a screen, written as Option Zero at the top of whatever you ask next.
-   On JoyRiders, one spec was thrown away minutes after a four-option ask built from a
-   title alone, and another was specced in depth before anyone saw the app already
-   did the job.
+   Skipping these, a spec gets thrown away minutes after a four-option ask built from a
+   title alone, or specced in depth for something the app already does.
 1. **Frame.** Draft Goal, Context, Problem (with the reframe) and Requirements. Then ask:
    *is this the right problem?* The options might be "Yes", "Solve the reframed
    problem instead", "Narrow it to …" and "Drop it". Don't draft solutions until the

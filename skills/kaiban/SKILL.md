@@ -38,7 +38,7 @@ name (what `ListAgents` shows), and the person by `config.me`.
   by the page: `{choice, label, note, at}`), `updated`.
 - **`sessions/<name>`**: `name`, `role` (a few words), `model`, `now` (one sentence on what
   it's doing), `state` (`working` · `waiting` · `idle`), `updated`.
-- **`tasks/<id>`**: a card. `num` (its short number: the card is called `<prefix>-<num>`, e.g. JR-12), `title`, `detail` (a two- or three-sentence overview for the person), `notes` (what only sessions need: files, PRs, decisions, steps; shown folded under "For sessions"), `links`, `area` (a key of `config.areas`),
+- **`tasks/<id>`**: a card. `num` (its short number: the card is called `<prefix>-<num>`, e.g. BK-12), `title`, `detail` (a two- or three-sentence overview for the person), `notes` (what only sessions need: files, PRs, decisions, steps; shown folded under "For sessions"), `links`, `area` (a key of `config.areas`),
   `stage` (a key of `config.stages`), `owner` (a session name or `config.me`), `state`
   (`handed`: not picked up yet · `doing` · `blocked` · `wontdo`: dropped, kept in Done · `""`), `type` (`spike`: plan the work with the `design-spike` skill, ending in new cards · `bug`: steps to reproduce, may skip a design stage · empty: a story), `waitsOn` (what it's waiting
   for, in words), `from`, `handedAt`, `pickedUpAt`, `order` (lower is higher in its
@@ -62,8 +62,7 @@ typical set:
  {"key": "next", "label": "Up next"},
  {"key": "spec", "label": "Spec", "owner": "<planning session>"},
  {"key": "design", "label": "UI", "owner": "<designer session>"},
- {"key": "build", "label": "Build", "owner": "<dev session>"},
- {"key": "review", "label": "Review", "owner": "<reviewer session>"},
+ {"key": "build", "label": "Build and review", "owner": "<dev session>"},
  {"key": "done", "label": "Done", "aside": true}]
 ```
 
@@ -77,14 +76,14 @@ each box's open to-dos and who is on them from `tasks`.
 
 1. `ListAgents` to learn the session names. Ask the person what to call them, for
    `config.me`, even when the account shows a name: it may not be the one they use.
-   Agree the project's two names: a long one for the board's title (JoyRiders) and a
-   short one of two to four letters (JR). The short one is `config.prefix`, so cards are
-   JR-12, and lowercased it starts every session's name: `jr-orchestrator`, `jr-pm`,
-   `jr-designer`, `jr-dev`. Ask the person to `/rename` each session to match before the
+   Agree the project's two names: a long one for the board's title (Bookshop) and a
+   short one of two to four letters (BK). The short one is `config.prefix`, so cards are
+   BK-12, and lowercased it starts every session's name: `bk-orchestrator`, `bk-pm`,
+   `bk-ui`, `bk-dev`. Ask the person to `/rename` each session to match before the
    board goes up (a session can't rename itself), since stage owners, card owners and
    each session's hourly check all carry the names.
 2. Copy `template.html` to your scratchpad, replace `KAIBAN_TITLE` with the project's name
-   plus "kaiban" (e.g. "JoyRiders kaiban"), and publish it with
+   plus "kaiban" (e.g. "Bookshop kaiban"), and publish it with
    `capabilities: {db: {}, user: {}, comments: {}}`. The publishing session is the relay:
    it stays watching the board (`ArtifactComments` watch) and passes relay comments on. Record the URL in the project's memory.
 3. Write `config/main` (with stages owned by the sessions that do each step), a `sessions` doc per session (leave `now` empty for the sessions
@@ -105,17 +104,16 @@ each box's open to-dos and who is on them from `tasks`.
 
 ## Roles
 
-What worked on JoyRiders (retro, 10-31): long-lived sessions for the roles that carry
+What has worked: long-lived sessions for the roles that carry
 context from card to card, and a fresh agent where independence matters more.
 
 - **Orchestrator**: publishes the board, relays its comments, keeps the skills and the
-  board in shape, runs retros. It's named `<short>-orchestrator`, e.g. `jr-orchestrator`.
+  board in shape, runs retros. It's named `<short>-orchestrator`, e.g. `bk-orchestrator`.
 - **PM, designer, dev**: long-lived sessions, each loading its role skill (`pm-role`,
   `designer-role`, `dev-role`). The role skills point to the official plugins and add
   the rules we learned.
-- **Reviewer**: a fresh subagent per PR (`reviewer-role`), not a standing session. The
-  board's Review stage can still exist; the session that moves a card there spawns the
-  reviewer.
+- **Reviewer**: a fresh subagent per PR (`reviewer-role`), not a standing session. The dev
+  session spawns it for each PR, so one Build and review column covers both.
 
 To move a project's board to a newer template, read the artifact, then publish the new
 template (title filled in) with its `url`. The data stays where it is.
@@ -154,7 +152,7 @@ template (title filled in) with its `url`. The data stays where it is.
 - **Log numbers come from `config`.** In the same batch as the log row, update
   `config/main` to bump `nextD` or `nextA`, pinned with `if_version`. If the batch fails
   because another session took that number, reread `config/main` and retry.
-- **Card numbers come from `config` too.** A new card takes `nextT` as its `num`, and the same batch bumps `nextT`, pinned with `if_version`. Refer to cards by their name (JR-12) in messages, log rows and asks.
+- **Card numbers come from `config` too.** A new card takes `nextT` as its `num`, and the same batch bumps `nextT`, pinned with `if_version`. Refer to cards by their name (BK-12) in messages, log rows and asks.
 - **Pin every write** with the `if_version` you read. On a conflict, reread and redo the
   change, never overwrite someone else's.
 - **Links on everything.** Every PR, preview, page, record and design is a link in `links`,
