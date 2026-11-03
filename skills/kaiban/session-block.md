@@ -3,7 +3,7 @@
 This project's work is tracked on a kaiban: BOARD_URL. It's a live board shared by
 PERSON and every Claude Code session here. Read and write it with the ArtifactData tool on
 that URL (load the `kaiban` skill for the data fields). Your session name is what
-`ListAgents` shows for this session, e.g. `joyriders-dev`.
+`ListAgents` shows for this session, e.g. `jr-dev` (the project's short name, then the role).
 
 - **The board is columns of stages** (`config/main` → `stages`). A stage with an owner is
   that session's queue. Each card (`tasks`) has a `stage`, an `owner` and a `state`

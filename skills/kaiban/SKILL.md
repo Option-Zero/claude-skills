@@ -77,6 +77,12 @@ each box's open to-dos and who is on them from `tasks`.
 
 1. `ListAgents` to learn the session names. Ask the person what to call them, for
    `config.me`, even when the account shows a name: it may not be the one they use.
+   Agree the project's two names: a long one for the board's title (JoyRiders) and a
+   short one of two to four letters (JR). The short one is `config.prefix`, so cards are
+   JR-12, and lowercased it starts every session's name: `jr-orchestrator`, `jr-pm`,
+   `jr-designer`, `jr-dev`. Ask the person to `/rename` each session to match before the
+   board goes up (a session can't rename itself), since stage owners, card owners and
+   each session's hourly check all carry the names.
 2. Copy `template.html` to your scratchpad, replace `KAIBAN_TITLE` with the project's name
    plus "kaiban" (e.g. "JoyRiders kaiban"), and publish it with
    `capabilities: {db: {}, user: {}, comments: {}}`. The publishing session is the relay:
@@ -103,7 +109,7 @@ What worked on JoyRiders (retro, 10-31): long-lived sessions for the roles that 
 context from card to card, and a fresh agent where independence matters more.
 
 - **Orchestrator**: publishes the board, relays its comments, keeps the skills and the
-  board in shape, runs retros. Its session name ends in `-orchestrator`.
+  board in shape, runs retros. It's named `<short>-orchestrator`, e.g. `jr-orchestrator`.
 - **PM, designer, dev**: long-lived sessions, each loading its role skill (`pm-role`,
   `designer-role`, `dev-role`). The role skills point to the official plugins and add
   the rules we learned.
