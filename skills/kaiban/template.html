@@ -283,17 +283,23 @@ function tellSession(el, who, text) {
 const MOVE_WAIT_MS = 10000;
 const pendingMoves = new Map();
 function tellMoveLater(id, verb) {
-  clearTimeout(pendingMoves.get(id));
+  clearTimeout(pendingMoves.get(id)?.timer);
   flash("Saved. Telling the new owner in " + MOVE_WAIT_MS / 1000 + " s, in case you move it again.");
-  pendingMoves.set(id, setTimeout(() => {
+  const send = () => {
     pendingMoves.delete(id);
     const t = taskById(id);
     if (!t || t.state !== "handed" || t.owner === me()) return flash("Saved.");
     // The board has redrawn by now, so find the card again for the comment's anchor.
     const el = document.querySelector('#work .card[data-id="' + id + '"]') || document.getElementById("work");
     tellSession(el, t.owner, me() + " " + verb + " " + named(t) + " to you in " + (stageByKey(t.stage)?.label || t.stage) + " (tasks/" + id + ")");
-  }, MOVE_WAIT_MS));
+  };
+  pendingMoves.set(id, {send, timer: setTimeout(send, MOVE_WAIT_MS)});
 }
+// Leaving or hiding the page within the wait would lose the handoff, so send any waiting ones now.
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState !== "hidden") return;
+  for (const {send, timer} of [...pendingMoves.values()]) { clearTimeout(timer); send(); }
+});
 let dragId = null;
 
 const me = () => state.config.me || "You";
