@@ -30,7 +30,10 @@ name (what `ListAgents` shows), and the person by `config.me`.
   row each: `[{key, text, detail?, kind?, options?}]`; `kind: "question"` takes its own
   `options` (`[{key, label, rec?}]`, or plain strings) as a dropdown, or a typed answer when it has none, and anything else is a
   proposal answered Accept / Accept with changes / Later / Reject; the answer then carries
-  `items: {key: {choice, label, note}}`), `doneLabel` (actions: the button's words, e.g. "Both are on
+  `items: {key: {choice, label, note}}`. The person can answer some rows and leave the rest: the
+  answered rows are relayed at once and kept in `answer.items`, and the ask stays `open`, showing only
+  the rows left, until the last row is answered. Act on rows as they arrive, but leave the ask open
+  and keep its other rows as they are; close it once it's `answered`), `doneLabel` (actions: the button's words, e.g. "Both are on
   staging"), `blocks` (blockers: what's blocked), `actFor` (the session that acts on the
   answer), `task` (the id of the card it's about: the ask is parked while that card sits in a
   stage no session owns, such as Up next, Later or Done), `parked` (true when the person

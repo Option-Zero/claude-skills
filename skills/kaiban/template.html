@@ -72,6 +72,7 @@ textarea{width:100%;min-height:56px;resize:vertical}
 .item{display:grid;grid-template-columns:minmax(0,1fr) auto;min-width:0;gap:6px 10px;align-items:start;padding:10px 12px;border-radius:8px;border:1px solid var(--line);font-size:14px}
 .item .d{color:var(--muted);font-size:13.5px}
 .item .note{grid-column:1/-1}
+.item.done{grid-template-columns:1fr;color:var(--muted);background:var(--surface)}
 /* A select is as wide as its longest option; cap it so the question keeps the room. */
 .item select{max-width:min(320px,45vw);width:100%}
 .item > div{min-width:0}
@@ -392,12 +393,19 @@ function renderNeeds() {
 }
 const PROPOSAL_CHOICES = [{key: "accept", label: "Accept"}, {key: "changes", label: "Accept with changes"}, {key: "later", label: "Later"}, {key: "reject", label: "Reject"}];
 /* An ask with several items: one row each, answered with one tap per row, like a table with a Decision column.
-   A proposal gets Accept / changes / Later / Reject; a question gets its own options, or a text answer when it has none. */
+   A proposal gets Accept / changes / Later / Reject; a question gets its own options, or a text answer when it has none.
+   Rows can be answered a few at a time: answered rows go to the session at once and are kept in answer.items,
+   and the ask stays open, showing only the rows still to answer, until the last one is sent. */
 function itemsAsk(n, card) {
   const picks = state.picks[n.id] ||= {};
+  const prior = n.answer?.items || {};
+  const pending = n.items.filter(it => !prior[it.key]);
+  const num = it => n.items.indexOf(it) + 1;
   // A question's options may be written as plain strings; read each as its own key and label.
   const choicesFor = it => it.kind === "question" ? (it.options || []).map(o => typeof o === "string" ? {key: o, label: o} : o) : PROPOSAL_CHOICES;
-  const rows = n.items.map(it => {
+  const doneRows = n.items.filter(it => prior[it.key]).map(it =>
+    h("div", {class: "item done"}, h("div", {}, "✓ ", h("b", {}, it.text), " — ", prior[it.key].label, prior[it.key].note ? " (" + prior[it.key].note + ")" : "")));
+  const rows = pending.map(it => {
     const choices = choicesFor(it);
     const p = picks[it.key] ||= {choice: "", note: ""};
     const input = choices.length
@@ -409,22 +417,31 @@ function itemsAsk(n, card) {
     note.value = p.note;
     return h("div", {class: "item"}, h("div", {}, h("b", {}, it.text), it.detail ? h("div", {class: "d"}, it.detail) : null), input, db ? note : null);
   });
-  card.append(h("div", {class: "items"}, rows));
+  card.append(h("div", {class: "items"}, doneRows, rows));
   const labelFor = it => {
     const c = picks[it.key].choice;
     return choicesFor(it).find(o => o.key === c)?.label || c;
   };
+  const line = (it, a) => num(it) + ". " + a.label + (a.note ? " (" + a.note + ")" : "");
   const send = h("button", {class: "primary", onclick: async () => {
-    const items = Object.fromEntries(n.items.map(it => [it.key, {choice: picks[it.key].choice, label: labelFor(it), note: picks[it.key].note.trim()}]));
-    const summary = n.items.map((it, i) => (i + 1) + ". " + labelFor(it) + (items[it.key].note ? " (" + items[it.key].note + ")" : "")).join("; ");
-    tellSession(card, n.actFor, me() + " answered \"" + n.title + "\": " + summary + " (needs/" + n.id + ")");
-    await save("needs/" + n.id, {status: "answered", answer: {choice: "items", label: summary, note: "", items, at: new Date().toISOString()}});
+    const fresh = Object.fromEntries(pending.filter(it => picks[it.key].choice).map(it =>
+      [it.key, {choice: picks[it.key].choice, label: labelFor(it), note: picks[it.key].note.trim()}]));
+    const items = {...prior, ...fresh};
+    const allDone = n.items.every(it => items[it.key]);
+    const rest = n.items.filter(it => !items[it.key]).length;
+    const said = pending.filter(it => fresh[it.key]).map(it => line(it, fresh[it.key])).join("; ");
+    tellSession(card, n.actFor, me() + " answered \"" + n.title + "\": " + said
+      + (allDone ? "" : " (" + rest + " of " + n.items.length + " rows still open; act on these now and leave the ask open)") + " (needs/" + n.id + ")");
+    const summary = n.items.filter(it => items[it.key]).map(it => line(it, items[it.key])).join("; ");
+    await save("needs/" + n.id, {status: allDone ? "answered" : "open", answer: {choice: "items", label: summary, note: "", items, at: new Date().toISOString()}});
     delete state.picks[n.id];
   }}, "Send answers");
   const left = h("span", {class: "small muted"});
   function ready() {
-    const missing = n.items.filter(it => !picks[it.key].choice).length;
-    send.disabled = missing > 0;
+    const picked = pending.filter(it => picks[it.key].choice).length;
+    const missing = pending.length - picked;
+    send.disabled = picked === 0;
+    send.textContent = missing && picked ? "Send " + picked + (picked === 1 ? " answer" : " answers") + ", rest later" : "Send answers";
     left.textContent = missing ? missing + " of " + n.items.length + " still to pick" : "";
   }
   ready();
