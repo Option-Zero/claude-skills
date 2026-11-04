@@ -279,27 +279,15 @@ function tellSession(el, who, text) {
   notifySession(el, "Kaiban relay to " + who + ". Only pass this on to " + who + " with SendMessage; don't act on it. Your only reply here: \"Passed to " + who + ".\" The message: " + text).then(sent =>
     flash(sent ? "Sent to " + who + "." : "Saved. " + who + " sees it at its next board check."));
 }
-/* A move waits a few seconds, so quick re-drags send one handoff, to where the card ends up. */
-const MOVE_WAIT_MS = 10000;
-const pendingMoves = new Map();
-function tellMoveLater(id, verb) {
-  clearTimeout(pendingMoves.get(id)?.timer);
-  flash("Saved. Telling the new owner in " + MOVE_WAIT_MS / 1000 + " s, in case you move it again.");
-  const send = () => {
-    pendingMoves.delete(id);
-    const t = taskById(id);
-    if (!t || t.state !== "handed" || t.owner === me()) return flash("Saved.");
-    // The board has redrawn by now, so find the card again for the comment's anchor.
-    const el = document.querySelector('#work .card[data-id="' + id + '"]') || document.getElementById("work");
-    tellSession(el, t.owner, me() + " " + verb + " " + named(t) + " to you in " + (stageByKey(t.stage)?.label || t.stage) + " (tasks/" + id + ")");
-  };
-  pendingMoves.set(id, {send, timer: setTimeout(send, MOVE_WAIT_MS)});
+/* A move tells the new owner as soon as it saves. A quick re-drag sends another message;
+   the card's place on the board is what the session goes by. */
+function tellMove(id, verb) {
+  const t = taskById(id);
+  if (!t || t.state !== "handed" || t.owner === me()) return flash("Saved.");
+  // The board may have redrawn, so find the card again for the comment's anchor.
+  const el = document.querySelector('#work .card[data-id="' + id + '"]') || document.getElementById("work");
+  tellSession(el, t.owner, me() + " " + verb + " " + named(t) + " to you in " + (stageByKey(t.stage)?.label || t.stage) + " (tasks/" + id + ")");
 }
-// Leaving or hiding the page within the wait would lose the handoff, so send any waiting ones now.
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState !== "hidden") return;
-  for (const {send, timer} of [...pendingMoves.values()]) { clearTimeout(timer); send(); }
-});
 let dragId = null;
 
 const me = () => state.config.me || "You";
@@ -566,7 +554,7 @@ function dropZone(col, stageKey) {
     const prev = i > 0 ? order(rows[i - 1].dataset.id) : (after ? order(after.dataset.id) - 2 : 0);
     const next = after ? order(after.dataset.id) : prev + 2;
     const patch = movePatch(t, stageKey);
-    save("tasks/" + t.id, {...patch, order: (prev + next) / 2}).then(ok => ok && (patch.state === "handed" || pendingMoves.has(t.id)) && tellMoveLater(t.id, "moved"));
+    save("tasks/" + t.id, {...patch, order: (prev + next) / 2}).then(ok => ok && patch.state === "handed" && tellMove(t.id, "moved"));
   });
 }
 
@@ -634,7 +622,7 @@ function renderCardDialog(force) {
           if (patch.state === "doing" && !t.pickedUpAt) patch.pickedUpAt = nowIso();
           save("tasks/" + t.id, patch).then(ok => {
             if (!ok) return;
-            if (patch.state === "handed" || pendingMoves.has(t.id)) tellMoveLater(t.id, "handed");
+            if (patch.state === "handed") tellMove(t.id, "handed");
             dlg.close();
           });
         }}, "Save"),

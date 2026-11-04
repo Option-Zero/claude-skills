@@ -132,8 +132,8 @@ template (title filled in) with its `url`. The data stays where it is.
   session watching the board with comment auto-replies armed (the one that published
   it), the **relay**, usually the orchestrator. The relay passes the text on with
   `SendMessage`, replies only "Passed to <session>" (never what will be done: it isn't
-  the one doing it) and resolves the thread. The page waits 10 seconds after a drag
-  before sending, so quick re-drags send one handoff, to where the card ends up. A session handing a card to another sends it a
+  the one doing it) and resolves the thread. The page sends a handoff as soon as a move
+  saves, so a quick re-drag sends another; the card's place on the board is what counts. A session handing a card to another sends it a
   one-line `SendMessage` itself. Every session also keeps an hourly safety-net check
   (`CronCreate`) in case the relay isn't running; `session-block.md` has the wording.
 - **A card's type sets how it's handled.** A spike moves through the person's checkpoints, not
