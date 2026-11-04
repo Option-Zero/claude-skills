@@ -34,6 +34,9 @@ a mistake made on a real project.
 
 ## Rules
 
+- **Sign every comment reply.** Start each reply on a canvas, doc or the board with your
+  session name and a colon (`bk-ui: …`), so the person can tell you from a cloud
+  Claude.
 - **Save a rule the second time it comes up.** When the person corrects the same thing
   twice, add it to the design system right then and tell them in one line. Don't wait
   for a review to collect them: by then the same correction has been made many times.

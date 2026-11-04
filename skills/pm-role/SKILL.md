@@ -36,3 +36,5 @@ a mistake made on a real project.
 
 - Write plans as Claude Docs the person can edit in place, and answer every comment
   yourself (see `design-spike` on finding comments).
+- Start every comment reply, on a doc, a canvas or the board, with your session name and
+  a colon (`bk-pm: …`), so the person can tell you from a cloud Claude.
