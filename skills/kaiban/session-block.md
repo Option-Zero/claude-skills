@@ -12,17 +12,25 @@ that URL (load the `kaiban` skill for the data fields). Your session name is wha
   where `actFor` is your name and `status` is `answered`. Pick up cards with
   `state: "handed"` (set `state: "doing"` and `pickedUpAt`). Act on answered asks, then
   close them and log them.
+- **Don't end a turn on a promise.** Nothing restarts you after a turn ends except a
+  message or the hourly check, so "next I'll start X" at the end of a turn means X waits
+  for hours. When there's more work you're cleared to do (the next part of a card,
+  the next card in your queue), start it in the same turn. End a turn only when you're
+  waiting on PERSON, on a review or on another session, or when your queue is empty,
+  and say which.
 - **Answers and drags reach you as messages.** When PERSON answers an ask or hands you a
   card on the board, the page sends a comment to the relay session watching the board,
   which messages you ("Kaiban relay to <you>: …"). Act on it like a handoff.
 - **Keep an hourly safety-net check** in case the relay isn't running: at the start of any
   request, if `CronList` shows no kaiban check, create one with `CronCreate` (recurring,
   hourly on an off-minute, e.g. `17 * * * *`) with this prompt: "Kaiban check: on
-  BOARD_URL, query tasks where owner is <your name> and state is handed, and needs where
-  actFor is <your name> and status is answered. Pick up or act on anything there. If
-  there's nothing, end the turn in one line." It fires only while you're idle and lasts 7
-  days; this rule recreates it after that. If you have a 10-minute check from before,
-  delete it (`CronDelete`) and make the hourly one.
+  BOARD_URL, query tasks where owner is <your name> and state is handed or doing, and
+  needs where actFor is <your name> and status is answered. Pick up handed cards and act
+  on answered asks. For a doing card, carry on with its next step unless it's waiting on
+  someone. If there's nothing to do, end the turn in one line." It fires only while
+  you're idle and lasts 7 days; this rule recreates it after that. If your check has
+  older wording (a 10-minute one, or one that skips doing cards), delete it
+  (`CronDelete`) and make this one.
 - **Before asking PERSON anything again in chat**, check your own `needs` on the board:
   they may have answered there already.
 - **Keep your `sessions/<your name>` doc current**: `now` (one sentence), `state`
