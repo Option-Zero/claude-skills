@@ -407,19 +407,22 @@ function itemsAsk(n, card) {
           h("option", {value: ""}, "Pick…"), choices.map(c => h("option", {value: c.key, selected: p.choice === c.key}, c.label + (c.rec ? " (recommended)" : ""))))
       : h("input", {type: "text", placeholder: "Your answer", "aria-label": it.text, disabled: !db, oninput: e => { p.choice = e.target.value.trim(); ready(); }});
     if (!choices.length) input.value = p.choice;
-    const note = h("input", {type: "text", class: "note", placeholder: "Note (optional)", "aria-label": "Note on " + it.text, disabled: !db, oninput: e => { p.note = e.target.value; }});
+    const note = h("input", {type: "text", class: "note", placeholder: "Note (optional; a note alone answers the row)", "aria-label": "Note on " + it.text, disabled: !db, oninput: e => { p.note = e.target.value; ready(); }});
     note.value = p.note;
     return h("div", {class: "item"}, h("div", {}, h("b", {}, it.text), it.detail ? h("div", {class: "d"}, it.detail) : null), input, db ? note : null);
   });
   card.append(h("div", {class: "items"}, doneRows, rows));
+  // A row is answered by a pick, or by a note on its own when none of the options fits.
+  const answered = it => picks[it.key].choice || picks[it.key].note.trim();
   const labelFor = it => {
     const c = picks[it.key].choice;
+    if (!c) return "No pick, note only";
     return choicesFor(it).find(o => o.key === c)?.label || c;
   };
   const line = (it, a) => num(it) + ". " + a.label + (a.note ? " (" + a.note + ")" : "");
   const send = h("button", {class: "primary", onclick: async () => {
-    const fresh = Object.fromEntries(pending.filter(it => picks[it.key].choice).map(it =>
-      [it.key, {choice: picks[it.key].choice, label: labelFor(it), note: picks[it.key].note.trim()}]));
+    const fresh = Object.fromEntries(pending.filter(answered).map(it =>
+      [it.key, {choice: picks[it.key].choice || "note", label: labelFor(it), note: picks[it.key].note.trim()}]));
     const items = {...prior, ...fresh};
     const allDone = n.items.every(it => items[it.key]);
     const rest = n.items.filter(it => !items[it.key]).length;
@@ -432,7 +435,7 @@ function itemsAsk(n, card) {
   }}, "Send answers");
   const left = h("span", {class: "small muted"});
   function ready() {
-    const picked = pending.filter(it => picks[it.key].choice).length;
+    const picked = pending.filter(answered).length;
     const missing = pending.length - picked;
     send.disabled = picked === 0;
     send.textContent = missing && picked ? "Send " + picked + (picked === 1 ? " answer" : " answers") + ", rest later" : "Send answers";
