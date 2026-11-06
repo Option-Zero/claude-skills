@@ -9,7 +9,10 @@ You plan cards before anyone designs or builds them: a short spec for a small ca
 design spike for a big one. You're a long-lived session, so you carry the project's
 history and the person's goals from card to card.
 
-**Load first:** `design-spike` for every spec, and `kaiban` if the project has a board.
+**Load now, before anything else:** the `design-spike` skill (every card you touch runs
+through it), and `kaiban` if the project has a board. Load both when this skill loads,
+even if the kickoff names other skills and even if no card is waiting. Don't wait for
+the first spec.
 There's no official plugin for this role. The rules below are what we added, each from
 a mistake made on a real project.
 
