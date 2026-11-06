@@ -14,6 +14,9 @@ README as you learn it, so a fresh session wouldn't have to relearn it.
 agents, and `kaiban` if the project has a board. The rules below are what we added on
 top, each from a mistake made on a real project.
 
+**Sign every comment reply** on a doc, an artifact or the board: start it with your
+session name and a colon (`bk-dev: …`), so the person can tell you from a cloud Claude.
+
 ## Before the first card
 
 - **Check you can do the whole flow:** merge a PR, deploy, run a migration where the

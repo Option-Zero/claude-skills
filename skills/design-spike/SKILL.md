@@ -65,9 +65,9 @@ conversation. It answers anyway, and its answers are guesses.
   doc's working notes) as a shortcut, not as the test.
 - **Answer each one** in its thread (Docs `create`, an utterance whose parent is the
   thread's first comment), about 40 words. A question gets an answer, checked against
-  the code. A change gets made in the doc, and the reply says what changed. Start your
-  first reply in a thread with your session name, so the person knows it's the session
-  with the context.
+  the code. A change gets made in the doc, and the reply says what changed. Start every
+  reply with your session name and a colon (`bk-pm: …`), so the person knows it's
+  the session with the context and not a cloud Claude or an automatic reply.
 - **Check what the other session did.** If a cloud session answered or edited before
   you, read its replies and edits (Docs `read` with `sinceRev`). Keep what's right, fix
   what's wrong against the code, and say so in the thread.

@@ -136,6 +136,11 @@ template (title filled in) with its `url`. The data stays where it is.
   saves, so a quick re-drag sends another; the card's place on the board is what counts. A session handing a card to another sends it a
   one-line `SendMessage` itself. Every session also keeps an hourly safety-net check
   (`CronCreate`) in case the relay isn't running; `session-block.md` has the wording.
+- **Sign every comment reply.** Every reply a session posts in a comment thread (on a
+  doc, a canvas, an artifact or the board) starts with its session name and a colon:
+  `bk-pm: …`. That's how the person tells the real session from a cloud Claude or an
+  automatic reply, neither of which has the session's context. An unsigned reply in a
+  thread didn't come from a session. It's a convention, not proof: anyone can type a name.
 - **A card's type sets how it's handled.** A spike moves through the person's checkpoints, not
   the build stages: its result is new cards (linked back to the spike) and a log row, and
   the spike itself goes to Done. A bug needs steps to reproduce before anyone picks it up.
