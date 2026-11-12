@@ -36,6 +36,9 @@ never with `git checkout` in the shared repo, where other sessions are working.
   decision were left wrong.
 - **Does a helper already do this?** Flag any logic that restates an existing helper or
   rule, such as a status check written inline where a named predicate exists.
+- **Built from the component library?** For a change to a screen: no new hand-typed colours
+  or one-off sizes; existing pieces used where they fit; a new shared piece added to the
+  library and the style page; the design system updated if the PR adds a pattern.
 - **No screenshots, no approval** for a change to a screen: 390 and 1280 px, light and
   dark, on the card (see `dev-role`).
 - Say plainly what you checked and what you didn't. "Not checked in a browser" is a

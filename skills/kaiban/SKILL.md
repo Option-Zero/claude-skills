@@ -151,6 +151,19 @@ template (title filled in) with its `url`. The data stays where it is.
   and matching the rows, so the person can answer in either place.
 - **An answer given in chat needs no ask.** Log the decision; don't post an ask just to
   close it. Times on the board come from the clock (`date -u`), never typed by hand.
+- **Keep a component library and a live style page.** On a project with screens, the UI
+  designer and dev build every page from one library of shared pieces, shown in every
+  state on a style page inside the app, so the guide can't fall behind the code. A card
+  that adds a likely-shared piece adds it to the library, after checking whether an
+  existing piece should change instead. A CI check fails on one-off styles, and the UI
+  designer reruns a whole-app design review about every 15 cards.
+- **One design canvas per card, starting from the app as it is.** Each card the UI
+  designer draws gets its own canvas, linked from the card's `links`. The canvas opens
+  with screenshots of the current app (phone and desktop) for the screens the card
+  touches, and the options are drawn over them. Don't draw from memory or from the
+  design system alone. One big shared canvas grew to over 100 comment threads, its pins
+  shifted with every redraw, and designs drawn without the real screens didn't match the
+  app. Older canvases stay as an archive.
 - **Save a rule the second time it comes up.** When the person corrects the same thing
   twice, the session adds the rule to where it belongs (the design system, the code
   style) right then and tells them in one line.
