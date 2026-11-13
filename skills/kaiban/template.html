@@ -3,7 +3,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,600&display=swap">
 <style>
-/* Layout: one column. Needs you, then sessions, then the work list, then the system map, then the log.
+/* Layout: one column. The work board first, then Needs you, then sessions, then the log.
    Everything shown comes from the page's db; this file holds no project content. */
 :root{
   --bg:#f6f7f4; --surface:#fff; --fg:#1d2420; --muted:#5d6862; --line:#d5dbd6; --col:#eaede8;
@@ -39,8 +39,6 @@ section{display:grid;gap:14px;min-width:0}
 .chip{display:inline-block;font-family:var(--mono);font-size:11px;line-height:1.6;padding:0 7px;border-radius:99px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
 .chip.who{border-color:transparent;background:var(--accent-soft);color:var(--accent)}
 .chip.you{border-color:transparent;background:var(--new-soft);color:var(--new)}
-.pill{display:inline-block;font-family:var(--mono);font-size:11px;padding:0 7px;border-radius:99px;border:1px solid currentColor;white-space:nowrap}
-.pill.ok{color:var(--ok)} .pill.new{color:var(--new)} .pill.block{color:var(--block)} .pill.mut{color:var(--muted)}
 button{font:inherit;font-size:14px;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:6px 12px;cursor:pointer}
 button:hover{border-color:var(--accent)}
 button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface);font-weight:600}
@@ -157,24 +155,11 @@ button.link.danger{color:var(--block)}
 #aside > .col{flex:1 1 300px}
 .col[data-stage="done"] .card .sum{padding:6px 10px}
 .col[data-stage="done"] .card .ct{font-size:13px;font-weight:400;color:var(--muted)}
-.col.aside{min-height:0;max-width:420px;max-height:340px;overflow-y:auto}
+.col.aside{min-height:0;max-width:420px;max-height:420px;overflow-y:auto}
 .col.aside > .col-head{position:sticky;top:-8px;z-index:1;background:var(--col);margin:-8px -8px 0;padding:10px 12px 6px}
 @media (max-width:600px){.board{grid-auto-columns:82%}}
-.addtask{display:grid;gap:8px;grid-template-columns:1fr auto auto auto;align-items:center;max-width:820px}
+.addtask{display:grid;gap:8px;grid-template-columns:1fr auto auto auto auto;align-items:center;max-width:820px}
 @media (max-width:600px){.addtask{grid-template-columns:1fr 1fr}.addtask input{grid-column:1/-1}}
-
-/* System map */
-.band{display:grid;gap:8px}
-.band + .band{position:relative;padding-top:22px}
-.band + .band::before{content:"↓";position:absolute;top:0;left:14px;color:var(--muted);font-size:14px}
-.boxes{display:flex;flex-wrap:wrap;gap:8px}
-.box{flex:1 1 220px;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:grid;gap:4px;align-content:start}
-.box.todo{background:transparent;border-style:dashed;border-color:var(--muted)}
-.box.blocked{border-color:var(--block)}
-.box .bt{display:flex;gap:6px;align-items:baseline;justify-content:space-between}
-.box p{font-size:13px;color:var(--muted)}
-.box .work{display:flex;gap:4px;flex-wrap:wrap}
-.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted)}
 
 /* Log */
 .scrollbox{max-height:460px;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:0 10px}
@@ -197,17 +182,6 @@ details.how ol{margin:10px 0 0;padding-left:20px;display:grid;gap:6px;max-width:
   <div class="stamp" id="stamp">Loading the live state…</div>
 </header>
 
-<section id="needs-you">
-  <div class="head"><h2>Needs you</h2><span class="small muted" id="needs-count"></span></div>
-  <div class="needs" id="needs"><p class="notice">Loading what's waiting on you…</p></div>
-  <div class="answered" id="answered"></div>
-</section>
-
-<section id="sessions">
-  <div class="head"><h2>Sessions</h2><span class="small muted">What each Claude Code session says it's doing</span></div>
-  <div class="sessions" id="session-list"><div class="srow"><span class="muted">Loading sessions…</span></div></div>
-</section>
-
 <section id="work">
   <div class="head"><h2>Work</h2><span class="small muted" id="work-count"></span></div>
   <div class="filters" id="filters" role="group" aria-label="Show work for"></div>
@@ -224,11 +198,17 @@ details.how ol{margin:10px 0 0;padding-left:20px;display:grid;gap:6px;max-width:
   </form>
 </section>
 
-<section id="system" hidden>
-  <div class="head"><h2>System</h2><span class="small muted">What it's made of, top to bottom. History lives in the log.</span></div>
-  <div class="legend"><span><span class="pill ok">live</span></span><span><span class="pill new">being changed</span></span><span><span class="pill block">blocked</span></span><span><span class="pill mut">not built</span></span></div>
-  <div id="map"></div>
+<section id="needs-you">
+  <div class="head"><h2>Needs you</h2><span class="small muted" id="needs-count"></span></div>
+  <div class="needs" id="needs"><p class="notice">Loading what's waiting on you…</p></div>
+  <div class="answered" id="answered"></div>
 </section>
+
+<section id="sessions">
+  <div class="head"><h2>Sessions</h2><span class="small muted">What each Claude Code session says it's doing</span></div>
+  <div class="sessions" id="session-list"><div class="srow"><span class="muted">Loading sessions…</span></div></div>
+</section>
+
 
 <section id="log">
   <div class="head"><h2>Log</h2><span class="small muted">Newest first · D decisions · A things that shipped</span></div>
@@ -256,15 +236,15 @@ details.how ol{margin:10px 0 0;padding-left:20px;display:grid;gap:6px;max-width:
 const DEFAULT_STAGES = [{key: "later", label: "Later and ideas", aside: true}, {key: "next", label: "Up next"}, {key: "doing", label: "Doing"}, {key: "done", label: "Done", aside: true}];
 // A card's type changes how a session handles it: a spike follows the design-spike skill and ends in new cards; a bug carries steps to reproduce and may skip Design. Story is the default and shows no tag.
 const TYPES = {"": "story", spike: "spike", bug: "bug"};
+const FOLDED = 3; // cards a folded Later or Done column shows
 const STATES = {"": "—", handed: "not picked up", doing: "in progress", blocked: "blocked", wontdo: "won't do"};
-const PILLS = {live: ["ok", "live"], changing: ["new", "being changed"], blocked: ["block", "blocked"], todo: ["mut", "not built"]};
 
 const state = {config: {}, needs: [], tasks: [], sessions: [], log: [], filter: "all", picks: {}, notes: {}, open: new Set()};
 let db = null;
 let comments = null;
 
 /* The board can't wake a session, but a comment sent to Claude wakes the relay session
-   watching this page, which passes it on. Falls back to the sessions' own checks. */
+   watching this page, which passes it on. Falls back to the orchestrator's sweep. */
 async function notifySession(el, text) {
   if (!comments) return false;
   try {
@@ -277,7 +257,7 @@ async function notifySession(el, text) {
 function tellSession(el, who, text) {
   if (!who || who === me()) return;
   notifySession(el, "Kaiban relay to " + who + ". Only pass this on to " + who + " with SendMessage; don't act on it. Your only reply here: \"Passed to " + who + ".\" The message: " + text).then(sent =>
-    flash(sent ? "Sent to " + who + "." : "Saved. " + who + " sees it at its next board check."));
+    flash(sent ? "Sent to " + who + "." : "Saved. The orchestrator's sweep passes it to " + who + "."));
 }
 /* A move tells the new owner as soon as it saves. A quick re-drag sends another message;
    the card's place on the board is what the session goes by. */
@@ -348,7 +328,7 @@ function renderHeader() {
   const c = state.config;
   document.getElementById("title").textContent = c.title || "Set up this board";
   const lede = document.getElementById("lede");
-  lede.textContent = c.title ? (c.lede || "") : "Write a config/main document with a title, the person's name (me), areas and a map. The kaiban skill says how.";
+  lede.textContent = c.title ? (c.lede || "") : "Write a config/main document with a title, the person's name (me), areas and stages. The kaiban skill says how.";
   lede.hidden = !lede.textContent;
 }
 
@@ -385,6 +365,8 @@ function renderNeeds() {
       db ? h("button", {class: "link", onclick: () => save("needs/" + n.id, {status: "open", answer: null})}, "Undo") : null));
   }
 }
+/* "Just my note" answers with the note alone (choice "note"), for when no option fits. */
+const NOTE_ONLY = {key: "note", label: "Just my note"};
 const PROPOSAL_CHOICES = [{key: "accept", label: "Accept"}, {key: "changes", label: "Accept with changes"}, {key: "later", label: "Later"}, {key: "reject", label: "Reject"}];
 /* An ask with several items: one row each, answered with one tap per row, like a table with a Decision column.
    A proposal gets Accept / changes / Later / Reject; a question gets its own options, or a text answer when it has none.
@@ -403,8 +385,8 @@ function itemsAsk(n, card) {
     const choices = choicesFor(it);
     const p = picks[it.key] ||= {choice: "", note: ""};
     const input = choices.length
-      ? h("select", {"aria-label": it.text, disabled: !db, onchange: e => { p.choice = e.target.value; ready(); }},
-          h("option", {value: ""}, "Pick…"), choices.map(c => h("option", {value: c.key, selected: p.choice === c.key}, c.label + (c.rec ? " (recommended)" : ""))))
+      ? h("select", {"aria-label": it.text, disabled: !db, onchange: e => { p.choice = e.target.value; ready(); if (p.choice === NOTE_ONLY.key) note.focus(); }},
+          h("option", {value: ""}, "Pick…"), [...choices, NOTE_ONLY].map(c => h("option", {value: c.key, selected: p.choice === c.key}, c.label + (c.rec ? " (recommended)" : ""))))
       : h("input", {type: "text", placeholder: "Your answer", "aria-label": it.text, disabled: !db, oninput: e => { p.choice = e.target.value.trim(); ready(); }});
     if (!choices.length) input.value = p.choice;
     const note = h("input", {type: "text", class: "note", placeholder: "Note (optional; a note alone answers the row)", "aria-label": "Note on " + it.text, disabled: !db, oninput: e => { p.note = e.target.value; ready(); }});
@@ -412,17 +394,18 @@ function itemsAsk(n, card) {
     return h("div", {class: "item"}, h("div", {}, h("b", {}, it.text), it.detail ? h("div", {class: "d"}, it.detail) : null), input, db ? note : null);
   });
   card.append(h("div", {class: "items"}, doneRows, rows));
-  // A row is answered by a pick, or by a note on its own when none of the options fits.
-  const answered = it => picks[it.key].choice || picks[it.key].note.trim();
+  // A row is answered by a pick, or by a note on its own ("Just my note", or no pick) when none of the options fits.
+  const noteOnly = it => !picks[it.key].choice || picks[it.key].choice === NOTE_ONLY.key;
+  const answered = it => noteOnly(it) ? picks[it.key].note.trim() : picks[it.key].choice;
   const labelFor = it => {
+    if (noteOnly(it)) return "Just my note";
     const c = picks[it.key].choice;
-    if (!c) return "No pick, note only";
     return choicesFor(it).find(o => o.key === c)?.label || c;
   };
   const line = (it, a) => num(it) + ". " + a.label + (a.note ? " (" + a.note + ")" : "");
   const send = h("button", {class: "primary", onclick: async () => {
     const fresh = Object.fromEntries(pending.filter(answered).map(it =>
-      [it.key, {choice: picks[it.key].choice || "note", label: labelFor(it), note: picks[it.key].note.trim()}]));
+      [it.key, {choice: noteOnly(it) ? NOTE_ONLY.key : picks[it.key].choice, label: labelFor(it), note: picks[it.key].note.trim()}]));
     const items = {...prior, ...fresh};
     const allDone = n.items.every(it => items[it.key]);
     const rest = n.items.filter(it => !items[it.key]).length;
@@ -446,7 +429,8 @@ function itemsAsk(n, card) {
 }
 function askCard(n) {
   const opts = n.options || [];
-  const pick = state.picks[n.id] ?? (opts.find(o => o.rec)?.key);
+  // Nothing is picked until the person picks: the recommended option keeps its tag but isn't preselected.
+  const pick = state.picks[n.id];
   const card = h("div", {class: "ask" + (n.kind === "blocker" ? " blocker" : "")});
   card.append(h("div", {class: "top"},
     h("span", {class: "title"}, n.title),
@@ -457,26 +441,30 @@ function askCard(n) {
   if (askLinks) card.append(askLinks);
   const itemControls = n.items?.length ? itemsAsk(n, card) : null;
   if (opts.length) {
-    card.append(h("div", {class: "opts", role: "radiogroup", "aria-label": n.title}, opts.map(o =>
+    card.append(h("div", {class: "opts", role: "radiogroup", "aria-label": n.title}, [...opts, {...NOTE_ONLY, detail: "None of these fits; say what you want in the note."}].map(o =>
       h("label", {class: "opt" + (o.rec ? " rec" : "") + (pick === o.key ? " on" : "")},
         h("input", {type: "radio", name: "pick-" + n.id, value: o.key, checked: pick === o.key, disabled: !db,
-          onchange: () => { state.picks[n.id] = o.key; renderNeeds(); }}),
+          onchange: () => { state.picks[n.id] = o.key; renderNeeds(); if (o.key === NOTE_ONLY.key) document.getElementById("note-" + n.id)?.focus(); }}),
         h("span", {}, h("b", {}, o.label), o.rec ? h("span", {class: "rec-tag"}, "recommended") : null),
         o.detail ? h("span", {class: "d"}, o.detail) : h("span", {})))));
   }
   if (db) {
-    const ta = h("textarea", {id: "note-" + n.id, placeholder: opts.length ? "Anything to add? (optional)" : "Note for the session (optional)", "aria-label": "Note"});
+    const justNote = pick === NOTE_ONLY.key;
+    const ta = h("textarea", {id: "note-" + n.id, placeholder: justNote ? "Your answer" : opts.length ? "Anything to add? (optional)" : "Note for the session (optional)", "aria-label": "Note"});
     ta.value = state.notes[n.id] || "";
-    ta.addEventListener("input", () => { state.notes[n.id] = ta.value; });
-    const chosen = opts.find(o => o.key === pick);
-    card.append(itemControls ? "" : ta, h("div", {class: "act"},
-      itemControls || h("button", {class: "primary", disabled: opts.length > 0 && !chosen, onclick: async () => {
+    const chosen = justNote ? NOTE_ONLY : opts.find(o => o.key === pick);
+    // Send waits for a pick, or for "Just my note" with something written.
+    const canSend = () => !opts.length || (chosen && (!justNote || ta.value.trim()));
+    ta.addEventListener("input", () => { state.notes[n.id] = ta.value; sendBtn.disabled = !canSend(); });
+    const sendBtn = h("button", {class: "primary", disabled: !canSend(), onclick: async () => {
         const label = chosen?.label || n.doneLabel || "Done";
         const note = ta.value.trim();
         tellSession(card, n.actFor, me() + " answered \"" + n.title + "\": " + label + (note ? ". Note: " + note : "") + " (needs/" + n.id + ")");
         await save("needs/" + n.id, {status: "answered", answer: {choice: chosen?.key || "done", label, note, at: new Date().toISOString()}});
         delete state.notes[n.id]; delete state.picks[n.id];
-      }}, opts.length ? "Send answer" : (n.doneLabel || "Mark done")),
+      }}, opts.length ? "Send answer" : (n.doneLabel || "Mark done"));
+    card.append(itemControls ? "" : ta, h("div", {class: "act"},
+      itemControls || sendBtn,
       n.actFor ? h("span", {class: "small muted"}, "Goes to ", ownerChip(n.actFor)) : null,
       n.parked ? h("button", {class: "link", onclick: () => save("needs/" + n.id, {parked: false})}, "Bring back")
         : parkedWhy(n) ? h("span", {class: "small muted"}, "Parked: " + parkedWhy(n))
@@ -565,14 +553,15 @@ function dropZone(col, stageKey) {
 function cardSummary(t, ...extra) {
   const st = stageByKey(t.stage);
   let waits = null;
-  if (t.state === "handed" && t.stage !== "done") waits = h("span", {class: "waits hand"}, "from " + (t.from || "?") + ", " + ago(t.handedAt));
+  // A handed card says how long it has waited, so a missed handoff shows at a glance.
+  if (t.state === "handed" && t.stage !== "done") waits = h("span", {class: "waits hand"}, (t.handedAt && !t.pickedUpAt ? "handed " + ago(t.handedAt) + ", not picked up" : "not picked up") + (t.from ? " · from " + t.from : ""));
   else if (t.waitsOn && t.stage !== "done") waits = h("span", {class: "waits"}, "waits on " + t.waitsOn);
   // The column says whose queue a card is in; the owner's tag marks only what they're actively on.
   const showOwner = t.owner && t.state === "doing" && t.stage !== "done" && !st?.aside;
   return h("div", {class: "sum"},
     h("span", {class: "ct" + (t.state === "wontdo" ? " struck" : "")}, ref(t) ? h("span", {class: "ref"}, ref(t)) : null, TYPES[t.type] && t.type ? h("span", {class: "badge type " + t.type}, t.type) : null, t.title),
     t.stage === "done" ? (t.state === "wontdo" ? h("span", {class: "cm"}, h("span", {class: "badge wontdo"}, STATES.wontdo)) : null) : h("span", {class: "cm"},
-      t.state && t.state !== "doing" && t.stage !== "done" ? h("span", {class: "badge " + t.state}, STATES[t.state] || t.state) : null,
+      t.state && t.state !== "doing" && t.state !== "handed" && t.stage !== "done" ? h("span", {class: "badge " + t.state}, STATES[t.state] || t.state) : null,
       t.area ? h("span", {class: "chip"}, areaLabel(t.area)) : null,
       showOwner ? ownerChip(t.owner) : null),
     waits, ...extra);
@@ -648,7 +637,7 @@ function renderWork() {
   const handed = state.tasks.filter(t => t.state === "handed" && t.stage !== "done").sort((a, b) => (a.handedAt || "").localeCompare(b.handedAt || ""));
   const alert = document.getElementById("handoff-alert");
   alert.hidden = !handed.length;
-  alert.replaceChildren(h("b", {}, handed.length + " handed off, not picked up: "), handed.map((t, i) => [i ? "; " : "", (ref(t) ? ref(t) + " " : "") + t.title + " → " + t.owner + " (" + ago(t.handedAt) + ")"]));
+  alert.replaceChildren(h("b", {}, handed.length + " handed off, not picked up: "), ...handed.flatMap((t, i) => [i ? "; " : "", (ref(t) ? ref(t) + " " : "") + t.title + " → " + t.owner + " (" + ago(t.handedAt) + ")"]));
 
   const board = document.getElementById("board");
   const aside = document.getElementById("aside");
@@ -658,11 +647,13 @@ function renderWork() {
   for (const st of stages()) {
     let items = shown.filter(t => t.stage === st.key || (!known.has(t.stage) && st === firstBoardStage())).sort(byOrder);
     let hiddenCount = 0;
-    if (st.key === "done") {
-      items = items.sort((a, b) => (b.updated || "").localeCompare(a.updated || ""));
-      const keep = state.open.has("done-all") ? 50 : 5;
-      hiddenCount = Math.max(0, items.length - keep);
-      items = items.slice(0, keep);
+    /* Later and Done fold to their count and the newest few cards, so the open work stays in view. */
+    const all = state.open.has("all-" + st.key);
+    if (st.aside || st.key === "done") {
+      if (st.key === "done") items = items.sort((a, b) => (b.updated || "").localeCompare(a.updated || ""));
+      else if (!all) items = items.sort((a, b) => (b.created || b.updated || "").localeCompare(a.created || a.updated || ""));
+      hiddenCount = all ? 0 : Math.max(0, items.length - FOLDED);
+      if (!all) items = items.slice(0, FOLDED);
     }
     const waiting = items.filter(t => t.state === "handed").length;
     const col = h("div", {class: "col" + (st.aside ? " aside" : ""), "data-stage": st.key},
@@ -671,9 +662,9 @@ function renderWork() {
         st.owner ? h("span", {class: "who"}, st.owner === me() ? "you" : st.owner) : null,
         waiting ? h("span", {class: "warn"}, waiting + " not picked up") : null),
       items.length ? items.map(card) : h("div", {class: "empty"}, db ? "Drag a card here." : "Nothing here."),
-      st.key === "done" && (hiddenCount || state.open.has("done-all"))
-        ? h("button", {class: "link more", onclick: () => { state.open.has("done-all") ? state.open.delete("done-all") : state.open.add("done-all"); renderWork(); }},
-            state.open.has("done-all") ? "Show fewer" : "Show " + hiddenCount + " more")
+      hiddenCount || all
+        ? h("button", {class: "link more", "aria-expanded": all ? "true" : "false", onclick: () => { all ? state.open.delete("all-" + st.key) : state.open.add("all-" + st.key); renderWork(); }},
+            all ? "Show fewer" : "Show all " + (items.length + hiddenCount))
         : null);
     if (db) dropZone(col, st.key);
     (st.aside ? aside : board).append(col);
@@ -688,27 +679,6 @@ function renderWork() {
   areaSel.replaceChildren(h("option", {value: ""}, "Area"), ...Object.entries(state.config.areas || {}).map(([k, v]) => h("option", {value: k}, v)));
   areaSel.value = areaKeep;
   renderCardDialog();
-}
-
-/* System map, from config.map, with open work and session tags on each box */
-function renderMap() {
-  const bands = state.config.map || [];
-  document.getElementById("system").hidden = !bands.length;
-  document.getElementById("map").replaceChildren(...bands.map(band => h("div", {class: "band"},
-    h("h3", {}, band.heading || ""),
-    h("div", {class: "boxes"}, (band.boxes || []).map(box => {
-      const open = state.tasks.filter(t => t.area === box.area && active(t));
-      const owners = [...new Set(open.filter(t => t.state === "doing").map(t => t.owner))];
-      const blocked = box.state === "blocked" || open.some(t => t.state === "blocked");
-      const [pillClass, pillText] = PILLS[box.state] || ["mut", box.state || ""];
-      return h("div", {class: "box" + (box.state === "todo" ? " todo" : "") + (blocked ? " blocked" : "")},
-        h("div", {class: "bt"}, h("b", {}, box.name || areaLabel(box.area)), pillText || box.pill ? h("span", {class: "pill " + pillClass}, box.pill || pillText) : null),
-        box.text ? h("p", {}, box.text) : null,
-        linkList(box.links),
-        h("div", {class: "work"},
-          open.length ? h("a", {href: "#work", class: "chip", onclick: () => { state.filter = "all"; renderWork(); }}, open.length + " open") : null,
-          owners.map(ownerChip)));
-    })))));
 }
 
 /* Log */
@@ -727,7 +697,7 @@ function renderStamp() {
   const last = [...state.needs, ...state.tasks, ...state.sessions, ...state.log].map(d => d.updated || d.at).filter(Boolean).sort().pop();
   document.getElementById("stamp").textContent = last ? "Live · last change " + ago(last) : "Live";
 }
-function renderAll() { renderHeader(); renderNeeds(); renderSessions(); renderWork(); renderMap(); renderLog(); renderStamp(); }
+function renderAll() { renderHeader(); renderNeeds(); renderSessions(); renderWork(); renderLog(); renderStamp(); }
 
 async function start() {
   try { db = await window.claude?.use?.("db"); } catch { db = null; }
