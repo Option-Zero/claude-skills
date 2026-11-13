@@ -60,6 +60,13 @@ session name and a colon (`bk-dev: …`), so the person can tell you from a clou
   about six times in a week.
 - **Estimate in PRs and review rounds,** not hours: that's what the person can watch.
 
+- **Build screens from the component library.** No hand-typed colours or one-off sizes in
+  pages: use the tokens and the library's pieces. A piece likely to be shared goes into the
+  library (and the live style page) in the same PR; first check whether an existing piece
+  should change instead.
+- **Set up a check that fails on one-off styles** (hand-typed colours, arbitrary sizes
+  outside the library and token file) early in a project, so drift can't creep back.
+
 ## Before handing on
 
 - **Look at it in a browser.** For any change to a screen, take screenshots at 390 and
