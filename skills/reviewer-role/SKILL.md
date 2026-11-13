@@ -27,6 +27,10 @@ reviewer, e.g. `pr-review-toolkit:code-reviewer`, and gives it:
 The reviewer checks the PR out in its own git worktree off origin (in a scratchpad),
 never with `git checkout` in the shared repo, where other sessions are working.
 
+**One full review per PR.** When the author pushes a fix, the re-check is a fresh
+reviewer on a cheaper model (Sonnet), given the earlier findings and the fix's diff, and
+it checks only that the fix answers them. One project ran 365 reviews for 220 PRs.
+
 ## Checklist
 
 - **What does the PR make untrue elsewhere?** Search the behaviour doc and the decision
@@ -38,6 +42,9 @@ never with `git checkout` in the shared repo, where other sessions are working.
   rule, such as a status check written inline where a named predicate exists.
 - **No screenshots, no approval** for a change to a screen: 390 and 1280 px, light and
   dark, on the card (see `dev-role`).
+- **Time it on a throttled phone** when the PR changes how data loads or saves: the same
+  steps on main and on the PR, on a phone profile with the CPU slowed, against the
+  project's speed budget. Without this, speed regressions reached the person's phone.
 - Say plainly what you checked and what you didn't. "Not checked in a browser" is a
   reason to send it back, not a note.
 
