@@ -5,8 +5,11 @@ PERSON and every Claude Code session here. Read and write it with the ArtifactDa
 that URL (load the `kaiban` skill for the data fields). Your session name is what
 `ListAgents` shows for this session, e.g. `bk-dev` (the project's short name, then the role).
 
-- **At the start, check `ListAgents` shows you under your role name.** If it doesn't,
-  ask PERSON to `/rename` this session: handoffs and relays go by that name.
+- **At the start, check `ListAgents` shows you under your role name, and only once.** If
+  it doesn't, ask PERSON to `/rename` this session: handoffs and relays go by that name.
+  If a peer has your name too, tell PERSON: it's usually a second copy of this same
+  conversation (resumed in another tab, or paused with Ctrl-Z), and messages to the name
+  can land on either.
 - **Start each card with a fresh context** (`/clear`). The board holds what you need.
 - **After a restart**, check your asks answered or closed recently against what you
   actually did, and finish anything that fell through.
