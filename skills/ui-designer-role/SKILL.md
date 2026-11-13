@@ -16,23 +16,25 @@ a mistake made on a real project.
 ## Before the first screen
 
 - **Set up the kit before pages.** Colour and type tokens, and a small component library
-  (buttons, add pills, ticks, remove/clear marks, cards, menus) shown on a live style page
-  in the app, before the first real screen. Without it, two weeks of cards on one project
-  produced about 60 inconsistencies: hand-typed sizes, colours and button styles.
+  (buttons, add pills, ticks, remove/clear marks, cards, menus) shown on a live /style
+  page in the app, before the first real screen. New UI uses the kit or adds to it first,
+  and every UI PR says which kit pieces it uses or adds. On one project the kit came on
+  day four, after drift had set in: about 60 inconsistencies (hand-typed sizes, colours
+  and button styles) and 22 cleanup commits followed.
 
 ## Before you design
 
+- **Read the card's notes and the PM's spec first,** or ask the PM, before drawing a new
+  concept. Skipping that on one card got "you've got the wrong idea".
 - **A new canvas for each card, linked from the card.** Don't add the card to a shared
   canvas: a big one collects comment threads, and its pins shift as you redraw.
-- **Open the canvas with the app as it is today.** Before drawing anything, run the app,
-  screenshot every screen the card touches at 390 px and 1280 px, and put the screenshots
-  first on the canvas. Then draw the options over them. Every time, even for a small
-  change: on one project the designer drew a page from memory, got its colours and
-  layout wrong, and the person had to catch it.
-- **Draw on the app as built, not on the design system.** Capture the current screens
-  and their markup (the page's HTML and stylesheet) and draw on top of them. Designs
-  drawn from the design system alone needed changes at build time; designs drawn on
-  captured markup built as drawn.
+- **Open the canvas with the app as it is today, and draw on it.** Before drawing
+  anything, run the app, screenshot every screen the card touches at 390 px and 1280 px,
+  and put the screenshots first on the canvas. Then draw the options over the captured
+  markup (the page's HTML and stylesheet), with the deployed stylesheet loaded so the
+  pieces look like the kit. Every time, even for a small change: a page drawn from memory
+  got its colours and layout wrong, and designs drawn from the design system alone needed
+  changes at build time, while designs drawn on captured markup built as drawn.
 - **Test the real extremes:** the longest real value (a name, a title) taken from the
   data, phone (390 px) and desktop (1280 px), light and dark.
 - **Ask whether to change it at all.** Answer "does the app already do this?" first. After
@@ -46,11 +48,52 @@ a mistake made on a real project.
   design, after checking whether an existing piece should change instead.
 - **Write each rule the first time it's decided,** in the design system, in the same turn
   as the decision, and keep the style page showing it. Not after a batch of cards.
-
 - **Draw the options, don't describe them.** People pick faster from drawn boards than
   from prose, and canvas comments make short rounds.
 - **Never overwrite the person's layout.** Anything that regenerates a canvas merges
   into it, keeping positions they arranged.
+- **Pins stay put.** A comment's pin is a path through the page's elements, so adding,
+  removing or reordering anything before it moves the pin onto something else. Change
+  text in place, append new things after the last pinned element, move things with CSS,
+  and leave an empty placeholder where a section goes. Check that each thread still lands
+  on its text before publishing.
+- **Keep a "Decided" list on each card's canvas,** updated every round: layout, order,
+  behaviour, words. Redraws dropped decisions already made (a filter, a gap the person had
+  removed).
+- **Keep board generators somewhere that lasts** (the project's repo, not a scratchpad),
+  and delete browser profiles and screenshots when the card closes. Generators were lost
+  when scratch was cleared, and screenshots helped fill the disk.
+
+## Before you publish a board
+
+Render it and look at the screenshot, every time:
+
+- nothing overflows or misaligns, fonts load, and it fits at 390 px;
+- only real app copy inside a drawn screen: your notes go beside or under the frame,
+  since notes inside read as proposed copy;
+- colours and controls follow the design system (a delete is red if the system says so);
+- every item on the "Decided" list still shows;
+- the real extremes are drawn.
+
+The person caught rendering faults at least 8 times, asked "should be red, right?" 4
+times, and found notes inside mock-ups 3 times.
+
+## Canvas, then code
+
+Explore on the canvas, confirm in code. Once the person picks an option, dev builds it,
+and you sign off on the preview build by eye, in both themes, before it merges, as a
+second pass after dev's own screenshots (see `dev-role`). The sign-off checks the card's
+"Decided" list, not pixels against the canvas: where the build and the canvas differ in
+look, the kit wins, and the canvas is what gets fixed. A canvas is a hand-made copy of
+the app's look, so it drifts by construction; the preview catches drift before it ships.
+Building every option in code was weighed and rejected: slower rounds, heavier context,
+and designer code that blurs into dev's.
+
+## The design system
+
+- **Keep the design system short:** rules and the reason for each, with examples on the
+  /style page. Trim it when it passes about 300 lines. At 1,572 lines, its rules weren't
+  being applied.
 
 ## Rules
 
@@ -60,9 +103,10 @@ a mistake made on a real project.
 - **Save a rule the second time it comes up.** When the person corrects the same thing
   twice, add it to the design system right then and tell them in one line. Don't wait
   for a review to collect them: by then the same correction has been made many times.
-- **Check what was built by eye** in both themes before it merges, as a second pass after
-  dev's own screenshots (see `dev-role`).
-
+- **Comments without polling.** Canvases you publish are watched, so a comment the person
+  sends to Claude there wakes you. Board answers come through the orchestrator's relay.
+  Read plain comments once per turn. Polling ran about 1,155 checks in six days,
+  overnight too, and still missed board answers.
 - **Rerun a whole-app design review about every 15 cards:** colour, type, controls,
   spacing, and keys/icons/words, each read against the design system, findings checked
   in the code, drawn today vs proposed, ranked. Small drift is cheap to fix early and

@@ -44,22 +44,19 @@ spike answers every comment.** Don't leave it to the doc: an @Claude comment on 
 Doc starts a fresh cloud session that has none of the project, the repo or this
 conversation. It answers anyway, and its answers are guesses.
 
-- **Ask the person to paste the doc's link back to you.** Right after creating the doc,
-  ask them in chat (one line) to paste its link so you can watch it. A session can only
-  arm comment replies for a link the person gave in their own message. When they paste
-  it, start a watch (`ArtifactComments`, `action: "watch"`, the doc's URL) and check
-  that the watch listing shows replies armed. Then their @Claude comments wake this
-  session rather than a cloud one. Watches end with the session, so if you're restarted
-  mid-spike, ask for the link again.
-- **Keep a slower check as a backstop**, for comments without @Claude and for times the
-  watch isn't armed. Make a recurring `CronCreate` check every 10 minutes on an
-  off-minute (e.g. `3,13,23,33,43,53 * * * *`). Its prompt: read this doc's comments
-  and answer any new ones. Also check at the start of every turn the person sends you.
-  Delete the cron when the spike is Done or Dropped.
+- **Ask for plain comments, not @Claude.** Watching the doc doesn't help: an @Claude
+  comment on a Claude Doc goes to a cloud session even while this session watches it,
+  and nothing written in the doc stops that. So ask the person to comment without
+  @Claude and tell you in chat when there's something to answer.
+- **Read the comments at the start of every turn** the person sends you, and on a
+  recurring `CronCreate` check every 10 minutes on an off-minute (e.g.
+  `3,13,23,33,43,53 * * * *`) while the doc is out for comment. Its prompt: read this
+  doc's comments and answer any new ones. Delete the cron when the spike is Done or
+  Dropped.
 - **Find new comments** with the Docs `query` (`object: "utterance"`), `under` the
   **tab** (`{"object": "file", "id": <tab id>}`), not the tab's body node: listing under
-  the body has stopped returning new threads. Don't trust `afterSeq` or
-  the watch alone: look at every thread's last comment, and any thread whose last word
+  the body has stopped returning new threads. Don't trust `afterSeq`
+  alone: look at every thread's last comment, and any thread whose last word
   is the person's is waiting on you, @Claude or not. Keep the last `seq` you handled
   where the next check finds it (the kaiban card's `commentSeq`, or a line in the spike
   doc's working notes) as a shortcut, not as the test.
@@ -71,8 +68,8 @@ conversation. It answers anyway, and its answers are guesses.
 - **Check what the other session did.** If a cloud session answered or edited before
   you, read its replies and edits (Docs `read` with `sinceRev`). Keep what's right, fix
   what's wrong against the code, and say so in the thread.
-- **Tell the person once**, when you open the doc, that you'll answer comments here:
-  right away once the watch is armed, otherwise within about 10 minutes.
+- **Tell the person once**, when you open the doc, that you'll answer plain comments
+  within about 10 minutes, or right away if they tell you in chat.
 
 Sections, in this order. Skip any that don't apply, and add any that help. Readers
 matter more than the template.
