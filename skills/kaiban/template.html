@@ -144,6 +144,7 @@ dialog.cardlg::backdrop{background:rgb(0 0 0 / .45)}
 .badge.doing{background:var(--accent-soft);color:var(--accent)}
 .badge.blocked{background:var(--block-soft);color:var(--block)}
 .badge.wontdo{border:1px solid var(--line);color:var(--muted)}
+.badge.unrelayed{background:var(--block-soft);color:var(--block)}
 .badge.type{margin-right:6px;vertical-align:1px;border:1px solid currentColor;text-transform:uppercase;letter-spacing:.04em}
 .badge.type.spike{color:var(--accent)}
 .badge.type.bug{color:var(--block)}
@@ -222,7 +223,7 @@ details.how ol{margin:10px 0 0;padding-left:20px;display:grid;gap:6px;max-width:
     <ol>
       <li>The state lives in this page's database, not its HTML. Sessions read and write it with the ArtifactData tool on this page's URL; nobody republishes the page to update it.</li>
       <li>A session keeps its row in <code>sessions</code> current: what it's doing now, its state, when it last checked in.</li>
-      <li><b>Handing off</b> is moving a card to the next stage: its <code>stage</code>, the stage's session as <code>owner</code>, <code>state: "handed"</code>, <code>from</code> and <code>handedAt</code>. Dragging a card into a session's column does exactly that. A message to the other session is a nudge; the card is the record.</li>
+      <li><b>Handing off</b> is moving a card to the next stage: its <code>stage</code>, the stage's session as <code>owner</code>, <code>state: "handed"</code>, <code>from</code> and <code>handedAt</code>. Dragging a card into a session's column does exactly that. A message to the other session is a nudge; the card is the record. The relay session passes the handoff on and stamps <code>relayedAt</code>; a card or an answer it hasn't passed on after 5 minutes shows "not relayed yet".</li>
       <li><b>Picking up</b> sets <code>state: "doing"</code> and <code>pickedUpAt</code>. Until then the card says "not picked up".</li>
       <li><b>Asking you</b> adds a <code>needs</code> doc with options and <code>actFor</code>, the session that acts on the answer. A list of proposals or questions goes in one ask as <code>items</code>, answered one row at a time. It closes the ask and logs it once it has acted.</li>
       <li><b>Done</b> moves the card to <code>stage: "done"</code> and adds a <code>log</code> row with links.</li>
@@ -253,10 +254,10 @@ async function notifySession(el, text) {
     return true;
   } catch { return false; }
 }
-// The instructions come first so an automatic reply says only who it went to, not what will be done.
+// The comment only wakes the relay: the answer or move is already saved, and the relay reads it from the board's data.
 function tellSession(el, who, text) {
   if (!who || who === me()) return;
-  notifySession(el, "Kaiban relay to " + who + ". Only pass this on to " + who + " with SendMessage; don't act on it. Your only reply here: \"Passed to " + who + ".\" The message: " + text).then(sent =>
+  notifySession(el, "Kaiban relay to " + who + ": " + text).then(sent =>
     flash(sent ? "Sent to " + who + "." : "Saved. The orchestrator's sweep passes it to " + who + "."));
 }
 /* A move tells the new owner as soon as it saves. A quick re-drag sends another message;
@@ -310,6 +311,15 @@ function ago(iso) {
   if (hrs < 36) return hrs + " h ago";
   return Math.round(hrs / 24) + " days ago";
 }
+/* The relay sets relayedAt to the answer.at or handedAt it passed on, so a match means that answer or handoff
+   reached its session. Without one after RELAY_FLAG_MIN minutes the relay has missed it. */
+const RELAY_FLAG_MIN = 5;
+function relayNote(sentAt, relayedAt) {
+  if (!sentAt) return null;
+  if (relayedAt && new Date(relayedAt) >= new Date(sentAt)) return [" · ", h("span", {class: "relay"}, "relayed")];
+  if ((Date.now() - new Date(sentAt)) / 60000 < RELAY_FLAG_MIN) return null;
+  return [" · ", h("span", {class: "badge unrelayed"}, "not relayed yet")];
+}
 function hoursSince(iso) { return iso ? (Date.now() - new Date(iso)) / 3600000 : Infinity; }
 function mmdd(iso) { const d = new Date(iso); return String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
 function ownerChip(owner) { return h("span", {class: owner === me() ? "chip you" : "chip who"}, owner === me() ? "you" : owner); }
@@ -361,7 +371,7 @@ function renderNeeds() {
   for (const n of answered) {
     ans.append(h("div", {class: "row"},
       h("span", {}, "✓ ", h("b", {}, n.title), " — ", n.answer?.label || "Done", n.answer?.note ? ": “" + n.answer.note + "”" : ""),
-      n.actFor ? h("span", {class: "small muted"}, "→ ", ownerChip(n.actFor), " " + ago(n.answer?.at)) : null,
+      n.actFor ? h("span", {class: "small muted"}, "→ ", ownerChip(n.actFor), " " + ago(n.answer?.at), n.actFor !== me() ? relayNote(n.answer?.at, n.relayedAt) : null) : null,
       db ? h("button", {class: "link", onclick: () => save("needs/" + n.id, {status: "open", answer: null})}, "Undo") : null));
   }
 }
@@ -554,7 +564,7 @@ function cardSummary(t, ...extra) {
   const st = stageByKey(t.stage);
   let waits = null;
   // A handed card says how long it has waited, so a missed handoff shows at a glance.
-  if (t.state === "handed" && t.stage !== "done") waits = h("span", {class: "waits hand"}, (t.handedAt && !t.pickedUpAt ? "handed " + ago(t.handedAt) + ", not picked up" : "not picked up") + (t.from ? " · from " + t.from : ""));
+  if (t.state === "handed" && t.stage !== "done") waits = h("span", {class: "waits hand"}, (t.handedAt && !t.pickedUpAt ? "handed " + ago(t.handedAt) + ", not picked up" : "not picked up") + (t.from ? " · from " + t.from : ""), t.owner !== me() ? relayNote(t.handedAt, t.relayedAt) : null);
   else if (t.waitsOn && t.stage !== "done") waits = h("span", {class: "waits"}, "waits on " + t.waitsOn);
   // The column says whose queue a card is in; the owner's tag marks only what they're actively on.
   const showOwner = t.owner && t.state === "doing" && t.stage !== "done" && !st?.aside;
