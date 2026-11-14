@@ -40,14 +40,16 @@ name (what `ListAgents` shows), and the person by `config.me`.
   answer), `task` (the id of the card it's about: the ask is parked while that card sits in a
   stage no session owns, such as Up next, Later or Done), `parked` (true when the person
   pressed "Not now"), `order`, `created`, `status` (`open` → `answered` → `closed`), `answer` (written
-  by the page: `{choice, label, note, at}`), `updated`. Read every note. A note wins over a pick
+  by the page: `{choice, label, note, at}`), `relayedAt` (written by the relay: the
+  `answer.at` it last passed on), `updated`. Read every note. A note wins over a pick
   it contradicts; if it's unclear which the person meant, ask.
 - **`sessions/<name>`**: `name`, `role` (a few words), `model`, `now` (one sentence on what
   it's doing), `state` (`working` · `waiting` · `idle`), `updated`.
 - **`tasks/<id>`**: a card. `num` (its short number: the card is called `<prefix>-<num>`, e.g. BK-12), `title`, `detail` (a two- or three-sentence overview for the person), `notes` (what only sessions need: files, PRs, decisions, steps; shown folded under "For sessions"), `links`, `area` (a key of `config.areas`),
   `stage` (a key of `config.stages`), `owner` (a session name or `config.me`), `state`
   (`handed`: not picked up yet · `doing` · `blocked` · `wontdo`: dropped, kept in Done · `""`), `type` (`spike`: plan the work with the `design-spike` skill, ending in new cards · `bug`: steps to reproduce, may skip a design stage · empty: a story), `waitsOn` (what it's waiting
-  for, in words), `from`, `handedAt`, `pickedUpAt`, `order` (lower is higher in its
+  for, in words), `from`, `handedAt`, `pickedUpAt`, `relayedAt` (written by the relay: the `handedAt` it
+  last passed on), `order` (lower is higher in its
   column), `created`, `updated`.
 - **`log/<id>`**: `num` (`D12` for a decision, `A30` for something that shipped or
   happened), `at`, `headline` (the outcome, shown in bold), `text` (numbers and detail, one
@@ -96,8 +98,14 @@ up").
    it stays watching the board (`ArtifactComments` watch) and passes relay comments on. Record the URL in the project's memory.
 4. **Give the relay what it needs to pass things on unattended.** Add allow rules for
    `ArtifactComments`, `ArtifactData` and `SendMessage` to the project's
-   `.claude/settings.local.json`, and run the relay session in manual permission mode, not
-   auto: auto mode has refused relay wake-ups, leaving relays unanswered for hours.
+   `.claude/settings.local.json`, and run the relay session in auto permission mode. In
+   manual mode, a turn woken by a board comment asks the person to confirm every read of
+   the board, data or comments, and allow rules don't cover that: each relay waits until
+   they're back at the terminal. Auto mode has refused relay wake-ups in the past, so keep
+   the sweep running as the backstop. The watch answers comments only for a link the
+   person gave in their own message: after a restart, or when a new session takes over
+   the relay, ask them to paste the board's URL, then check the watch listing says
+   "auto-replies armed".
 5. Write `config/main` (with stages owned by the sessions that do each step), a `sessions` doc per session (leave `now` empty for the sessions
    to fill), and the first `needs` and `tasks`, in one batch.
 6. Add [`session-block.md`](session-block.md) to the project's `CLAUDE.local.md` (create it
@@ -148,9 +156,10 @@ own. The orchestrator's sweep is the nudge.
   owner with `SendMessage`. If the owner isn't in `ListAgents`, tell the person once, with
   the exact fix (e.g. "start a session and `/rename` it `bk-dev`"). Don't repeat it every
   sweep.
-- **Check the relay's own threads.** Re-read the board's relay threads from the last 70
-  minutes, resolved ones included. A thread the platform's auto-replier answered or
-  resolved wasn't relayed: pass it on now. Never trust an auto-reply that says a session
+- **Catch missed relays from the data, not the threads.** An answer or a handed card with
+  no matching `relayedAt` (see the relay rule below) wasn't relayed: pass it on now and
+  stamp it. Don't re-read the comment threads on a timer: it's a long read every sweep,
+  and in manual mode a prompt each time. Never trust an auto-reply that says a session
   "isn't running".
 - **Keep it cheap.** Run the sweep on Sonnet in a small fresh context, not in the long
   orchestrator chat, and only while cards are handed out. A plain board-data check runs
@@ -167,16 +176,23 @@ own. The orchestrator's sweep is the nudge.
   no turn. Instead, when the person answers an ask or hands a card to a session, the page
   also sends a short comment to Claude ("Kaiban relay to <session>. …"). That wakes the
   session watching the board with comment auto-replies armed (the one that published
-  it), the **relay**, usually the orchestrator. The relay passes the text on with
-  `SendMessage`, replies only "Passed to <session>" (never what will be done: it isn't
-  the one doing it) and resolves the thread. The page sends a handoff as soon as a move
+  it), the **relay**, usually the orchestrator. The comment is only the wake-up: the page
+  saved the answer or the move to the board before sending it, so the relay reads the
+  board's data, not the thread. It looks for asks whose `answer.at` differs from their
+  `relayedAt` (open ones too: a list ask stays open while rows are answered) and cards
+  with `state: "handed"` whose `handedAt` differs from their `relayedAt`. It passes each
+  on with `SendMessage` (what was answered and the note, never what will be done: it
+  isn't the one doing it), sets `relayedAt` to the `answer.at` or `handedAt` it passed
+  on, and resolves the thread by the id in its notification, without reading it or
+  replying. A card another session handed may get a second nudge this way, which is
+  harmless. The page sends a handoff as soon as a move
   saves, so a quick re-drag sends another; the card's place on the board is what counts. A session handing a card to another sends it a
   one-line `SendMessage` itself. If that message fails, the card is still the handoff:
   say so, and ask the orchestrator to pass it on. The orchestrator's sweep catches what
   the relay misses.
-- **An auto-reply isn't the relay.** A relay thread the platform's auto-replier answered
-  or resolved counts as undelivered. Only a signed "Passed to <session>" from the relay
-  means it went on.
+- **An auto-reply isn't the relay.** The platform's auto-replier answers every relay
+  thread with "Passed to <session>" before the relay has done anything, so that reply
+  proves nothing. `relayedAt` on the ask or the card is what says it went on.
 - **Comments on a Claude Doc don't reach sessions.** `@Claude` on a Claude Doc starts a
   cloud session with no project context, and nothing in the doc stops it. For anything a
   session must answer there, comment without `@Claude` and tell the session in chat (or
